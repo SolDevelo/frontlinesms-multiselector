@@ -107,6 +107,11 @@
             return this.selected;
         };
 
+        multiSelector.getAllMatches = function(searchString) {
+            var initial_data = getExampleRawData();
+            return initial_data;
+        };
+
         // Function transforming the currently selected (with jQuery) element into the dropdown
         var transformElement = function(target) {
             var createInput = function() {
@@ -125,6 +130,50 @@
             var input = createInput();
             var results = createResultsDiv();
 
+            var handleKeys = function(e) {
+                var keyId = e.keyCode;
+                var receivedData;
+                if (keyId === 13) {
+                    alert("Enter");
+                } else if (keyId === 188) {
+                    alert("Comma");
+                } else if (keyId === 8) {   //backspace
+                    if ($(".multiselector-input").val().length === 0) {
+                        $(".multiselector-results").html("");
+                    }
+                } else {
+                    if ((keyId >= 48 && keyId <= 57) || (keyId >= 65 && keyId <= 90))  //Handle numbers, characters
+                    {
+                        receivedData = getExampleRawData();
+                    }
+                }
+
+                var output="";
+                //print
+                if (receivedData.hasOwnProperty('length'))
+                {
+                    for (var i=0; i< receivedData.length; i++)
+                    {
+                        output = output.concat(receivedData[i].displayName, "<br><ul>");
+                        for (var j=0; j<receivedData[i].members.length; j++)
+                        {
+                            if (receivedData[i].members[j].hasOwnProperty('disabled'))
+                            {
+                                if (receivedData[i].members[j].disabled === true) {
+                                    continue;
+                                }
+                            }
+                            output = output.concat("<li>", receivedData[i].members[j].name,"</li>");
+                        }
+                        output = output.concat("</ul>");
+                    }
+                }
+                $(".multiselector-results").html(output);
+
+            };
+
+            //Handling input
+            input.keydown( handleKeys);
             currentElement.html(input);
             input.after(results);
         };

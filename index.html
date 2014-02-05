@@ -2,6 +2,57 @@
 <html>
 <head>
     <title>MultiSelector Demo</title>
+
+<script>
+function getExampleRawData()    //parsed example json response?
+{
+    var str= "[\
+  {\
+    \"displayName\": \"Contacts\",\
+    \"customCssClass\": \"contact\",\
+    \"members\": [\
+      {\
+        \"name\": \"bobby\",\
+        \"id\": \"contact-12\",\
+        \"metadata\": \"+232 728 323 425\"\
+      },\
+      {\
+        \"name\": \"hello\",\
+        \"id\": \"contact-1234\",\
+        \"metadata\": \"+22 123 345 425\"\
+      },\
+      {\
+        \"name\": \"robbob\",\
+        \"id\": \"contact-113\",\
+        \"metadata\": \"+44 7832 323 425\",\
+        \"disabled\": true\
+      },\
+      {\
+        \"name\": \"robbob\",\
+        \"id\": \"contact-3\",\
+        \"metadata\": \"+46 000 367 465\",\
+        \"disabled\": true\
+      }\
+    ]\
+  },\
+  {\
+    \"displayName\": \"Groups\",\
+    \"customCssClass\": \"group\",\
+    \"members\": [\
+      {\
+        \"name\": \"bobguys\",\
+        \"id\": \"group-12\",\
+        \"metadata\": \"10 members\"\
+      }\
+    ]\
+  }\
+]";
+
+    var ret_val = JSON.parse(str);
+    return ret_val;
+};
+
+</script>
     <script src="lib/jquery-1.4.2.min.js"></script>
     <script src="js/multiselector.js"></script>
     <script src="js/demo.js"></script>
