@@ -149,7 +149,7 @@
                     for (var i=0; i< receivedData.length; i++)
                     {
                         output = output.concat(receivedData[i].displayName, "<br><ul>");
-                        for (var j=0; j<receivedData[i].members.length; j++)
+                        for (var j=0; j<receivedData[i].members.length && j<options.itemDisplayLimit; j++)
                         {
                             if (receivedData[i].members[j].hasOwnProperty('disabled'))
                             {
@@ -159,7 +159,14 @@
                             }
                             output = output.concat("<li>", receivedData[i].members[j].name,"</li>");
                         }
-                        output = output.concat("</ul>");
+                        if (receivedData[i].members.length > options.itemDisplayLimit)
+                        {
+                            output = output.concat("...</ul>Showing first ", options.itemDisplayLimit, " of ",
+                                receivedData[i].members.length, " matching ", receivedData[i].displayName.toLowerCase());
+                            break;
+                        } else {
+                            output = output.concat("</ul>");
+                        }
                     }
                 }
                 $(".multiselector-results").html(output);
