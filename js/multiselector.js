@@ -21,7 +21,7 @@
  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-*/
+ */
 
 (function($) {
     "use strict";
@@ -87,12 +87,11 @@
         };
 
         multiSelector.addObject = function(objectJson) {
-            // TODO: Return the added object Id
             // TODO: Store the object's type in itself for easier classification and searching
         };
 
         multiSelector.removeObject = function(objectId) {
-            // TODO: Return the removed object Id
+
         };
 
         multiSelector.toggleEnabled = function(objectId) {
@@ -105,11 +104,6 @@
 
         multiSelector.returnSelectedObjects = function() {
             return this.selected;
-        };
-
-        multiSelector.getAllMatches = function(searchString) {
-            var initial_data = getExampleRawData();
-            return initial_data;
         };
 
         // Function transforming the currently selected (with jQuery) element into the dropdown
