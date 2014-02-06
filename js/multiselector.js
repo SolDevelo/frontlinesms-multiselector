@@ -148,7 +148,7 @@
                 {
                     for (var i=0; i< receivedData.length; i++)
                     {
-                        output = output.concat(receivedData[i].displayName, "<br><ul>");
+                        output = output.concat(receivedData[i].displayName, "<br><ul class=\"", receivedData[i].customCssClass, "\">");
                         for (var j=0; j<receivedData[i].members.length && j<options.itemDisplayLimit; j++)
                         {
                             if (receivedData[i].members[j].hasOwnProperty('disabled'))
