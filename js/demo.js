@@ -2,5 +2,5 @@
 $(document).ready(function() {
     "use strict";
 
-    $("div#container").multiselect({ itemDisplayLimit: 1 });
+    $("div#container").multiselect({ itemDisplayLimit: 4 });
 });

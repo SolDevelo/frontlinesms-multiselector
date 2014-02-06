@@ -33,65 +33,77 @@
         var defaultOptions = {
             width: 500,
             minResultsHeight: 300,
-            itemDisplayLimit: 25
+            itemDisplayLimit: 25,
+            objectAdded: null,
+            objectRemoved: null
         };
 
-        var parseOptions = function(options, defaultOptions) {
-            if (!options) {
-                return defaultOptions;
+        var constants = {
+            groupingNames: {
+                contacts: 'contacts',
+                groups: 'groups',
+                smartgroups: 'smartgroups'
             }
+        };
 
-            if (options.itemDisplayLimit === undefined) {
-                options.itemDisplayLimit = defaultOptions.itemDisplayLimit;
-            }
-            if (options.width === undefined) {
-                options.width = defaultOptions.width;
-            }
-            if (options.minResultsHeight === undefined) {
-                options.minResultsHeight = defaultOptions.minResultsHeight;
-            }
+        var helpers = {
+            parseOptions: function(options, defaultOptions) {
+                if (!options) {
+                    return defaultOptions;
+                }
 
-            return options;
+                if (options.itemDisplayLimit === undefined) {
+                    options.itemDisplayLimit = defaultOptions.itemDisplayLimit;
+                }
+                if (options.width === undefined) {
+                    options.width = defaultOptions.width;
+                }
+                if (options.minResultsHeight === undefined) {
+                    options.minResultsHeight = defaultOptions.minResultsHeight;
+                }
+                if (options.objectAdded === undefined) {
+                    options.objectAdded = defaultOptions.objectAdded;
+                }
+                if (options.objectRemoved === undefined) {
+                    options.objectRemoved = defaultOptions.objectRemoved;
+                }
+
+                return options;
+            },
+            getGroupingByName: function(name) {
+                var grouping = null;
+                if (multiSelector.results.length) {
+                    for (var i = 0; i < multiSelector.results.length; i++) {
+                        if (multiSelector.results[i].displayName === name) {
+                            return multiSelector.results[i];
+                        }
+                    }
+                }
+                return grouping;
+            }
         };
 
         var multiSelector = {
             version: "0.1-SNAPSHOT",
             targetElement: currentElement,
-            options: parseOptions(options, defaultOptions),
+            options: helpers.parseOptions(options, defaultOptions),
             selected: {},
-            results: {}
-        };
-
-        var constants = {
-            types: {
-                contact: 'contact',
-                group: 'group'
-            },
-            regexPatterns: {
-                contactId: /^contact\-\d+$/ig,
-                groupId: /^group\-\d+$/ig
-            }
-        };
-
-        var getObjectTypeFromId = function(objectId) {
-            if (objectId.matches(constants.regexPatterns.contactId)) {
-                return constants.types.contact;
-            } else if (objectId.matches(constants.regexPatterns.groupId)) {
-                return constants.types.group;
-            }
-            return null;
-        };
-
-        var getSelectedObjectById = function(objectId) {
-            return this.selected[objectId];
+            results: {},
+            previousText: ""
         };
 
         multiSelector.addObject = function(objectJson) {
-            // TODO: Store the object's type in itself for easier classification and searching
+            var newObject = JSON.parse(objectJson);
+
+            if (objectAdded === "function") {
+                objectAdded(newObject.id);
+            }
         };
 
         multiSelector.removeObject = function(objectId) {
-
+            if (objectRemoved === "function") {
+                objectRemoved(objectId);
+            }
         };
 
         multiSelector.toggleEnabled = function(objectId) {
@@ -107,7 +119,7 @@
         };
 
         // Function transforming the currently selected (with jQuery) element into the dropdown
-        var transformElement = function(target) {
+        var transformElement = function() {
             var createInput = function() {
                 return $(document.createElement("input"))
                     .addClass("multiselector-input")
@@ -115,70 +127,118 @@
             };
 
             var createResultsDiv = function() {
+                var ul = document.createElement("ul");
+
                 return $(document.createElement("div"))
                     .addClass("multiselector-results")
                     .width(multiSelector.options.width)
-                    .height(multiSelector.options.minResultsHeight);
+                    .height(multiSelector.options.minResultsHeight)
+                    .append(ul);
+            };
+
+            var clearList = function() {
+                multiSelector.results.length = 0;
+                resultsUl.empty();
+            };
+
+            var addItemLimitInfoElement = function(count, max) {
+                var message = "Showing " + count + " out of " + max + " matches";
+                var infoElement = $(document.createElement("li"))
+                    .addClass("multiselector-item-limit-info")
+                    .text(message);
+
+                resultsUl.append(infoElement);
+            };
+
+            var populateList = function() {
+                if (multiSelector.results.length) {
+                    var contacts = helpers.getGroupingByName(constants.groupingNames.contacts);
+                    var groups = helpers.getGroupingByName(constants.groupingNames.groups);
+                    var smartgroups = helpers.getGroupingByName(constants.groupingNames.smartgroups);
+
+                    var contactsElement = resultsUl.append(createGroupElement(contacts)).find("ul");
+                    if (contacts !== null && contacts.members.length > 0 &&
+                        contactsElement.children().length >= multiSelector.options.itemDisplayLimit) {
+
+                        addItemLimitInfoElement(contactsElement.children().length, contacts.members.length);
+                        return;
+                    }
+
+                    resultsUl.append(createGroupElement(groups));
+                    resultsUl.append(createGroupElement(smartgroups));
+                }
+            };
+
+            var createGroupChildElement = function(group, child) {
+                if (child === undefined || child === null) {
+                    return null;
+                }
+
+                return $(document.createElement("li"))
+                    .addClass("multiselector-list-item")
+                    .text(child.name);
+            };
+
+            var createGroupElement = function(group) {
+                if (group === undefined || group === null) {
+                    return null;
+                }
+
+                var groupElement = $(document.createElement("ul"));
+                var groupNameElement = $(document.createElement("span")).text(group.displayName);
+                var listItem = $(document.createElement("li"))
+                    .append(groupNameElement)
+                    .append(groupElement);
+
+                if (group.customCssClass !== undefined) {
+                    listItem.addClass(group.customCssClass);
+                }
+
+                for (var i = 0; i < group.members.length && i < multiSelector.options.itemDisplayLimit; i++) {
+                    groupElement.append(createGroupChildElement(group, group.members[i]));
+                }
+
+                return listItem;
             };
 
             var input = createInput();
             var results = createResultsDiv();
+            var resultsUl = results.find("ul");
 
             var handleKeys = function(e) {
                 var keyId = e.keyCode;
-                var receivedData;
+                var text = input.val();
+                multiSelector.previousText = text;
+
                 if (keyId === 13) {
-                    alert("Enter");
+                    clearList();
+                    // Enter
                 } else if (keyId === 188) {
-                    alert("Comma");
-                } else if (keyId === 8) {   //backspace
-                    if ($(".multiselector-input").val().length === 0) {
-                        $(".multiselector-results").html("");
+                    clearList();
+                    // Comma
+                } else if (keyId === 46 || keyId === 8 ||
+                    (keyId >= 48 && keyId <= 57) ||
+                    (keyId >= 65 && keyId <= 90) ||
+                    (keyId >= 96 && keyId <= 105)) {
+                    // Handle delete, backspace, numbers and characters
+                    clearList();
+
+                    if (text.length > 0 || multiSelector.previousText !== text) {
+                        multiSelector.results = contactService.getFilteredMatches("", text);
                     }
                 } else {
-                    if ((keyId >= 48 && keyId <= 57) || (keyId >= 65 && keyId <= 90))  //Handle numbers, characters
-                    {
-                        receivedData = getExampleRawData();
-                    }
+                    return;
                 }
 
-                var output="";
-                //print
-                if (receivedData.hasOwnProperty('length'))
-                {
-                    for (var i=0; i< receivedData.length; i++)
-                    {
-                        output = output.concat(receivedData[i].displayName, "<br><ul class=\"", receivedData[i].customCssClass, "\">");
-                        for (var j=0; j<receivedData[i].members.length && j<options.itemDisplayLimit; j++)
-                        {
-                            if (receivedData[i].members[j].hasOwnProperty('disabled'))
-                            {
-                                if (receivedData[i].members[j].disabled === true) {
-                                    continue;
-                                }
-                            }
-                            output = output.concat("<li>", receivedData[i].members[j].name,"</li>");
-                        }
-                        if (receivedData[i].members.length > options.itemDisplayLimit)
-                        {
-                            output = output.concat("...</ul>Showing first ", options.itemDisplayLimit, " of ",
-                                receivedData[i].members.length, " matching ", receivedData[i].displayName.toLowerCase());
-                            break;
-                        } else {
-                            output = output.concat("</ul>");
-                        }
-                    }
-                }
-                $(".multiselector-results").html(output);
-
+                populateList();
             };
 
-            //Handling input
-            input.keydown( handleKeys);
             currentElement.html(input);
             input.after(results);
+            //Handling input
+            input.keyup(handleKeys);
         };
-        transformElement(currentElement);
+        transformElement();
 
         // Return the selector object for public function access
         return multiSelector;
