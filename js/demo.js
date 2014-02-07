@@ -1,6 +1,7 @@
+var ms;
 
 $(document).ready(function() {
     "use strict";
 
-    $("div#container").multiselect({ itemDisplayLimit: 4 });
+    ms = $("div#container").multiselect({ itemDisplayLimit: 4 });
 });

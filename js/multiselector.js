@@ -80,6 +80,62 @@
                     }
                 }
                 return grouping;
+            },
+            createGroupChildElement: function(group, child) {
+                if (child === undefined || child === null) {
+                    return null;
+                }
+
+                return $(document.createElement("li"))
+                    .addClass("multiselector-list-item")
+                    .text(child.name);
+            },
+            createGroupElement: function(group) {
+                if (group === undefined || group === null) {
+                    return null;
+                }
+
+                var groupElement = $(document.createElement("ul"));
+                var groupNameElement = $(document.createElement("span")).text(group.displayName);
+                var listItem = $(document.createElement("li"))
+                    .append(groupNameElement)
+                    .append(groupElement);
+
+                if (group.customCssClass !== undefined) {
+                    listItem.addClass(group.customCssClass);
+                }
+
+                for (var i = 0; i < group.members.length && i < multiSelector.options.itemDisplayLimit; i++) {
+                    groupElement.append(helpers.createGroupChildElement(group, group.members[i]));
+                }
+
+                return listItem;
+            },
+            createInput: function() {
+                return $(document.createElement("input"))
+                    .addClass("multiselector-input")
+                    .width(multiSelector.options.width);
+            },
+            createResultsDiv: function() {
+                var ul = document.createElement("ul");
+
+                return $(document.createElement("div"))
+                    .addClass("multiselector-results")
+                    .width(multiSelector.options.width)
+                    .height(multiSelector.options.minResultsHeight)
+                    .append(ul);
+            },
+            clearList: function() {
+                multiSelector.results.length = 0;
+                $(".multiselector-results").find("ul").empty();
+            },
+            addItemLimitInfoElement: function(count, max) {
+                var message = "Showing " + count + " out of " + max + " matches";
+                var infoElement = $(document.createElement("li"))
+                    .addClass("multiselector-item-limit-info")
+                    .text(message);
+
+                $(".multiselector-results").find("ul").append(infoElement);
             }
         };
 
@@ -118,37 +174,14 @@
             return this.selected;
         };
 
+        //Make public getGroupingByName()
+        multiSelector.getGroupingByName = helpers.getGroupingByName;
+        multiSelector.createGroupElement = helpers.createGroupElement;
+        multiSelector.clearList = helpers.clearList;
+        multiSelector.createGroupChildElement = helpers.createGroupChildElement;
+
         // Function transforming the currently selected (with jQuery) element into the dropdown
         var transformElement = function() {
-            var createInput = function() {
-                return $(document.createElement("input"))
-                    .addClass("multiselector-input")
-                    .width(multiSelector.options.width);
-            };
-
-            var createResultsDiv = function() {
-                var ul = document.createElement("ul");
-
-                return $(document.createElement("div"))
-                    .addClass("multiselector-results")
-                    .width(multiSelector.options.width)
-                    .height(multiSelector.options.minResultsHeight)
-                    .append(ul);
-            };
-
-            var clearList = function() {
-                multiSelector.results.length = 0;
-                resultsUl.empty();
-            };
-
-            var addItemLimitInfoElement = function(count, max) {
-                var message = "Showing " + count + " out of " + max + " matches";
-                var infoElement = $(document.createElement("li"))
-                    .addClass("multiselector-item-limit-info")
-                    .text(message);
-
-                resultsUl.append(infoElement);
-            };
 
             var populateList = function() {
                 if (multiSelector.results.length) {
@@ -156,11 +189,11 @@
                     var groups = helpers.getGroupingByName(constants.groupingNames.groups);
                     var smartgroups = helpers.getGroupingByName(constants.groupingNames.smartgroups);
 
-                    var contactsElement = resultsUl.append(createGroupElement(contacts)).find("ul");
+                    var contactsElement = resultsUl.append(helpers.createGroupElement(contacts)).find("ul");
                     if (contacts !== null && contacts.members.length > 0 &&
                         contactsElement.children().length >= multiSelector.options.itemDisplayLimit) {
 
-                        addItemLimitInfoElement(contactsElement.children().length, contacts.members.length);
+                        helpers.addItemLimitInfoElement(contactsElement.children().length, contacts.members.length);
                         return;
                     }
 
@@ -169,68 +202,33 @@
                 }
             };
 
-            var createGroupChildElement = function(group, child) {
-                if (child === undefined || child === null) {
-                    return null;
-                }
-
-                return $(document.createElement("li"))
-                    .addClass("multiselector-list-item")
-                    .text(child.name);
-            };
-
-            var createGroupElement = function(group) {
-                if (group === undefined || group === null) {
-                    return null;
-                }
-
-                var groupElement = $(document.createElement("ul"));
-                var groupNameElement = $(document.createElement("span")).text(group.displayName);
-                var listItem = $(document.createElement("li"))
-                    .append(groupNameElement)
-                    .append(groupElement);
-
-                if (group.customCssClass !== undefined) {
-                    listItem.addClass(group.customCssClass);
-                }
-
-                for (var i = 0; i < group.members.length && i < multiSelector.options.itemDisplayLimit; i++) {
-                    groupElement.append(createGroupChildElement(group, group.members[i]));
-                }
-
-                return listItem;
-            };
-
-            var input = createInput();
-            var results = createResultsDiv();
+            var input = helpers.createInput();
+            var results = helpers.createResultsDiv();
             var resultsUl = results.find("ul");
 
             var handleKeys = function(e) {
                 var keyId = e.keyCode;
                 var text = input.val();
-                multiSelector.previousText = text;
 
                 if (keyId === 13) {
-                    clearList();
+                    helpers.clearList();
                     // Enter
-                } else if (keyId === 188) {
-                    clearList();
+                }
+                else if (keyId === 188) {
+                    helpers.clearList();
                     // Comma
-                } else if (keyId === 46 || keyId === 8 ||
-                    (keyId >= 48 && keyId <= 57) ||
-                    (keyId >= 65 && keyId <= 90) ||
-                    (keyId >= 96 && keyId <= 105)) {
-                    // Handle delete, backspace, numbers and characters
-                    clearList();
+                }
 
+                if (text !== multiSelector.previousText)
+                {
+                    helpers.clearList();
                     if (text.length > 0 || multiSelector.previousText !== text) {
                         multiSelector.results = contactService.getFilteredMatches("", text);
                     }
-                } else {
-                    return;
+                    populateList();
                 }
 
-                populateList();
+                multiSelector.previousText = text;
             };
 
             currentElement.html(input);
