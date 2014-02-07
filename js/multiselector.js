@@ -175,10 +175,9 @@
         };
 
         //Make public getGroupingByName()
-        multiSelector.getGroupingByName = helpers.getGroupingByName;
-        multiSelector.createGroupElement = helpers.createGroupElement;
-        multiSelector.clearList = helpers.clearList;
-        multiSelector.createGroupChildElement = helpers.createGroupChildElement;
+        multiSelector.getHelperFunctions = function() {
+            return helpers;
+        };
 
         // Function transforming the currently selected (with jQuery) element into the dropdown
         var transformElement = function() {
@@ -197,8 +196,8 @@
                         return;
                     }
 
-                    resultsUl.append(createGroupElement(groups));
-                    resultsUl.append(createGroupElement(smartgroups));
+                    resultsUl.append(helpers.createGroupElement(groups));
+                    resultsUl.append(helpers.createGroupElement(smartgroups));
                 }
             };
 
