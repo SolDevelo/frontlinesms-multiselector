@@ -221,7 +221,7 @@
                 if (text !== multiSelector.previousText)
                 {
                     helpers.clearList();
-                    if (text.length > 0 || multiSelector.previousText !== text) {
+                    if (text.length > 0) {
                         multiSelector.results = contactService.getFilteredMatches("", text);
                     }
                     populateList();
