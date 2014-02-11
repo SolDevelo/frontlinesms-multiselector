@@ -26,7 +26,7 @@
 (function($) {
     "use strict";
 
-    $.fn.multiselect = function(options) {
+    $.fn.multiselect = function(options, translations) {
         // currently selected element === this
         // assigning it to a variable for use in inline functions
         var currentElement = this;
@@ -35,7 +35,8 @@
             minResultsHeight: 300,
             itemDisplayLimit: 25,
             objectAdded: null,
-            objectRemoved: null
+            objectRemoved: null,
+            language: "en_US"
         };
 
         var constants = {
@@ -66,6 +67,9 @@
                 }
                 if (options.objectRemoved === undefined) {
                     options.objectRemoved = defaultOptions.objectRemoved;
+                }
+                if (options.language === undefined) {
+                    options.language = defaultOptions.language;
                 }
 
                 return options;
@@ -130,12 +134,24 @@
                 $(".multiselector-results").find("ul").empty();
             },
             addItemLimitInfoElement: function(count, max) {
-                var message = "Showing " + count + " out of " + max + " matches";
+                var message = sprintf(helpers.getMessage("common.item.limit.label") ,count, max);//multiSelector.translations[multiSelector.options.language]["common.item.limit.label"], count, max);
                 var infoElement = $(document.createElement("li"))
                     .addClass("multiselector-item-limit-info")
                     .text(message);
 
                 $(".multiselector-results").find("ul").append(infoElement);
+            },
+            getMessage: function(code) {
+                if (multiSelector.translations !== null &&
+                    multiSelector.translations.hasOwnProperty(multiSelector.options.language) &&
+                    multiSelector.translations[multiSelector.options.language].hasOwnProperty(code)) {
+                    return multiSelector.translations[multiSelector.options.language][code];
+                } else if (multiSelector.defaultTranslations.hasOwnProperty(multiSelector.options.language) &&
+                    multiSelector.defaultTranslations[multiSelector.options.language].hasOwnProperty(code)) {
+                    return multiSelector.defaultTranslations[multiSelector.options.language][code];
+                }
+
+                return sprintf("[%s]", code);
             }
         };
 
@@ -145,7 +161,13 @@
             options: helpers.parseOptions(options, defaultOptions),
             selected: {},
             results: {},
-            previousText: ""
+            previousText: "",
+            defaultTranslations: {
+                "en_US": {
+                    "common.item.limit.label": "Showing %s out of %s matches"
+                }
+            },
+            translations: (translations === undefined) ? null : translations
         };
 
         multiSelector.addObject = function(objectJson) {
