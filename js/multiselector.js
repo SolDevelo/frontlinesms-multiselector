@@ -33,7 +33,9 @@
         var defaultOptions = {
             width: 500,
             minResultsHeight: 300,
-            itemDisplayLimit: 25,
+            contactItemDisplayLimit: 15,
+            groupItemDisplayLimit: 5,
+            smartgroupItemDisplayLimit: 5,
             objectAdded: null,
             objectRemoved: null,
             language: "en_US"
@@ -53,23 +55,14 @@
                     return defaultOptions;
                 }
 
-                if (options.itemDisplayLimit === undefined) {
-                    options.itemDisplayLimit = defaultOptions.itemDisplayLimit;
-                }
-                if (options.width === undefined) {
-                    options.width = defaultOptions.width;
-                }
-                if (options.minResultsHeight === undefined) {
-                    options.minResultsHeight = defaultOptions.minResultsHeight;
-                }
-                if (options.objectAdded === undefined) {
-                    options.objectAdded = defaultOptions.objectAdded;
-                }
-                if (options.objectRemoved === undefined) {
-                    options.objectRemoved = defaultOptions.objectRemoved;
-                }
-                if (options.language === undefined) {
-                    options.language = defaultOptions.language;
+                for (var key in defaultOptions) {
+                    if (!defaultOptions.hasOwnProperty(key)) {
+                        continue;
+                    }
+
+                    if (!options.hasOwnProperty(key)) {
+                        options[key] = defaultOptions[key];
+                    }
                 }
 
                 return options;
@@ -94,8 +87,8 @@
                     .addClass("multiselector-list-item")
                     .text(child.name);
             },
-            createGroupElement: function(group) {
-                if (group === undefined || group === null) {
+            createGroupElement: function(group, limit) {
+                if (group === undefined || group === null || limit < 1) {
                     return null;
                 }
 
@@ -109,8 +102,12 @@
                     listItem.addClass(group.customCssClass);
                 }
 
-                for (var i = 0; i < group.members.length && i < multiSelector.options.itemDisplayLimit; i++) {
+                var i;
+                for (i = 0; i < group.members.length && i < limit; i++) {
                     groupElement.append(helpers.createGroupChildElement(group, group.members[i]));
+                }
+                if (i === limit && group.members.length !== i) {
+                    groupElement.append(helpers.createItemLimitInfoElement(i, group.members.length));
                 }
 
                 return listItem;
@@ -133,21 +130,22 @@
                 multiSelector.results.length = 0;
                 $(".multiselector-results").find("ul").empty();
             },
-            addItemLimitInfoElement: function(count, max) {
-                var message = sprintf(helpers.getMessage("common.item.limit.label") ,count, max);//multiSelector.translations[multiSelector.options.language]["common.item.limit.label"], count, max);
-                var infoElement = $(document.createElement("li"))
+            createItemLimitInfoElement: function(count, max) {
+                var message = sprintf(helpers.getMessage("common.item.limit.label") ,count, max);
+
+                return $(document.createElement("li"))
                     .addClass("multiselector-item-limit-info")
                     .text(message);
-
-                $(".multiselector-results").find("ul").append(infoElement);
             },
             getMessage: function(code) {
                 if (multiSelector.translations !== null &&
                     multiSelector.translations.hasOwnProperty(multiSelector.options.language) &&
                     multiSelector.translations[multiSelector.options.language].hasOwnProperty(code)) {
                     return multiSelector.translations[multiSelector.options.language][code];
+
                 } else if (multiSelector.defaultTranslations.hasOwnProperty(multiSelector.options.language) &&
                     multiSelector.defaultTranslations[multiSelector.options.language].hasOwnProperty(code)) {
+
                     return multiSelector.defaultTranslations[multiSelector.options.language][code];
                 }
 
@@ -210,16 +208,9 @@
                     var groups = helpers.getGroupingByName(constants.groupingNames.groups);
                     var smartgroups = helpers.getGroupingByName(constants.groupingNames.smartgroups);
 
-                    var contactsElement = resultsUl.append(helpers.createGroupElement(contacts)).find("ul");
-                    if (contacts !== null && contacts.members.length > 0 &&
-                        contactsElement.children().length >= multiSelector.options.itemDisplayLimit) {
-
-                        helpers.addItemLimitInfoElement(contactsElement.children().length, contacts.members.length);
-                        return;
-                    }
-
-                    resultsUl.append(helpers.createGroupElement(groups));
-                    resultsUl.append(helpers.createGroupElement(smartgroups));
+                    resultsUl.append(helpers.createGroupElement(contacts, multiSelector.options.contactItemDisplayLimit)).find("ul");
+                    resultsUl.append(helpers.createGroupElement(groups, multiSelector.options.groupItemDisplayLimit));
+                    resultsUl.append(helpers.createGroupElement(smartgroups, multiSelector.options.smartgroupItemDisplayLimit));
                 }
             };
 

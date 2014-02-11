@@ -2,6 +2,7 @@ $(document).ready(function() {
     "use strict";
     var defaultResultsValue = ms.results;
     var helpers = ms.getHelperFunctions();
+    var defaultTranslation = ms.translations;
 
     test("getFilteredMatches(\"\", \'\') - whole database", function() {
         ms.results = contactService.getFilteredMatches("", '');
@@ -34,16 +35,33 @@ $(document).ready(function() {
 
     test("createGroupElement('contacts')", function() {
         ms.results = contactService.getFilteredMatches("", 'i');
-        var createdGroupElement = helpers.createGroupElement(helpers.getGroupingByName('contacts'));
+        var createdGroupElement = helpers.createGroupElement(helpers.getGroupingByName('contacts'), 4);
 
-        equal(createdGroupElement.html(), "<span>contacts</span><ul><li class=\"multiselector-list-item\">Alicia</li><li class=\"multiselector-list-item\">Dominic</li><li class=\"multiselector-list-item\">Emily</li><li class=\"multiselector-list-item\">Felix</li></ul>");
+        equal(createdGroupElement.html(), "<span>contacts</span><ul><li class=\"multiselector-list-item\">Alicia</li><li class=\"multiselector-list-item\">Dominic</li><li class=\"multiselector-list-item\">Emily</li><li class=\"multiselector-list-item\">Felix</li><li class=\"multiselector-item-limit-info\">Showing 4 out of 7 matches</li></ul>");
         equal(createdGroupElement[0].nodeName, "LI");
         notEqual(createdGroupElement.find("ul").html(), null);
     });
 
-    helpers.clearList();
     test("clearList()", function() {
+        helpers.clearList();
         equal($(".multiselector-results").html(), "<ul></ul>");
+    });
+
+    test("Translation test", function() {
+        //lack of user defined translation
+        var translationBackup = ms.translations;
+        ms.translations = null;
+        equal(helpers.getMessage("common.item.limit.label"), "Showing %s out of %s matches");
+
+        //non-existing item in user-defined translation
+        ms.translations = {"en_US":{"label":"non-exist"}};
+        equal(helpers.getMessage("common.item.limit.label"), "Showing %s out of %s matches");
+
+        //using user-defined translation
+        ms.translations = {"en_US":{"common.item.limit.label":"My Translation"}};
+        equal(helpers.getMessage("common.item.limit.label"), "My Translation");
+        
+        ms.translations = translationBackup;
     });
 
     //Restore defualt value
