@@ -176,51 +176,31 @@
 
                 if (existingSelection !== undefined) {
                     for (var i = 0; i < existingSelection.length; i++) {
-                        if (existingSelection.get(i).innerText === event.currentTarget.innerText) {
+                        if (existingSelection.eq(i).text() === $(event.currentTarget).text()) {
                             return;
                         }
                     }
                 }
 
-                $(".multiselector-new-item").before(
-                    helpers.createSelectedItem(event.currentTarget.innerText).click(helpers.deleteClickedSelection)
-                );
-                var i = (multiSelector.results.length !== undefined) ?
-                    multiSelector.results.length : 1;
-                for (; i > 0; i--) {
-                    for (var j = 0; j < multiSelector.results[i-1].members.length; j++) {
-                        if (multiSelector.results[i-1].members[j].name === event.currentTarget.innerText) {
-                            if (!multiSelector.selected.hasOwnProperty("length")) {
-                                multiSelector.selected = new Array();
-                            }
-                            multiSelector.selected.splice(-1, 0, multiSelector.results[i-1].members[j]);
-                            multiSelector.results[i-1].members.splice(j, 1);
+                var item = $(helpers.createSelectedItem($(event.currentTarget).text()))
+                    .click(helpers.deleteClickedSelection);
+                $(".multiselector-new-item").before(item);
+                for (var i = multiSelector.results.length - 1; i >= 0; i--) {
+                    for (var j = 0; j < multiSelector.results[i].members.length; j++) {
+                        if (multiSelector.results[i].members[j].name === $(event.currentTarget).text()) {
+                            multiSelector.selected.push(multiSelector.results[i].members[j]);
+                            multiSelector.results[i].members.splice(j, 1);
 
-                            event.currentTarget.remove();
+                            $(event.currentTarget).remove();
                             helpers.refreshList($(".multiselector-input").val());
                             return;
                         }
                     }
                 }
             },
-            addUserDefinedSectionItem: function(input) {
-                var existingSelection = $(".multiselector-selected-item");
-
-                if (existingSelection !== undefined) {
-                    for (var i = 0; i < existingSelection.length; i++) {
-                        if (existingSelection.get(i).innerText === input) {
-                            return;
-                        }
-                    }
-                }
-
-                $(".multiselector-new-item").before(
-                    helpers.createSelectedItem(input).click(helpers.deleteClickedSelection)
-                );
-            },
             deleteClickedSelection: function(event) {
-                helpers.deleteSelection(event.currentTarget.innerText);
-                event.currentTarget.remove();
+                helpers.deleteSelection($(event.currentTarget).text());
+                $(event.currentTarget).remove();
             },
             deleteSelection: function(text) {
                 for (var i = 0; i < multiSelector.selected.length; i++) {
@@ -237,9 +217,9 @@
                 if (!multiSelector.selected.hasOwnProperty('length') || multiSelector.selected.length === 0) {
                     return "";
                 }
-                var selectedID = new Array();
+                var selectedID = [];
                 for (var i = 0; i < multiSelector.selected.length; i++) {
-                    selectedID[i] = multiSelector.selected[i].id;
+                    selectedID.push(multiSelector.selected[i].id);
                 }
                 return selectedID.toString();
             },
@@ -271,7 +251,7 @@
             version: "0.1-SNAPSHOT",
             targetElement: currentElement,
             options: helpers.parseOptions(options, defaultOptions),
-            selected: {},
+            selected: [],
             results: {},
             previousText: "",
             defaultTranslations: {
@@ -324,23 +304,22 @@
                 var keyId = e.keyCode;
                 var text = input.val();
 
-                if (keyId === 13) {
-                    // Enter/Return
+                if (keyId === 13 || keyId === 188) {
+                    // Enter/Return and comma
+
                     input.val("");
-                    helpers.addUserDefinedSectionItem(text);
-                    helpers.refreshList("");
-                    multiSelector.previousText = "";
-                    return;
-                }
-                else if (keyId === 188) {
-                    // Comma
-                    input.val("");
-                    text = text.substring(0, text.search(","));
+                    if (text.search(",") >= 0) {
+                        text = text.substring(0, text.search(","));
+                    }
+
                     if (!text.length) {
                         return;
                     }
-                    helpers.addUserDefinedSectionItem(text);
-                    helpers.refreshList("");
+
+                    if (!$(".multiselector-results").hasClass("hidden")) {
+                        $(".multiselector-list-item").eq(0).trigger("click");
+                    }
+
                     multiSelector.previousText = "";
                     return;
                 } else if (keyId === 8) {
@@ -350,8 +329,8 @@
                     if (selection.length > 0 && text.length === 0 &&
                         multiSelector.previousText.length === 0) {
 
-                        helpers.deleteSelection(selection.get(-1).innerText);
-                        selection.get(-1).remove();
+                        helpers.deleteSelection(selection.eq(-1).text());
+                        selection.eq(-1).remove();
                     }
                 }
 
