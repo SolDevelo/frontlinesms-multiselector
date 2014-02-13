@@ -1,9 +1,35 @@
-.multiselector-input {
+input.multiselector-input {
+}
 
+li.multiselector-selected-item {
+    width: auto;
 }
 
 .multiselector-results {
     position: absolute;
+    background-color: #FFFFFF;
+    box-shadow: 1px 1px 5px 0px #000000;
+}
+
+li.multiselector-list-item {
+    background-color: #FFFFFF;
+}
+
+li.multiselector-list-item.hover {
+    background-color: #8080FF;
+    cursor: pointer;
+}
+
+ul {
+    list-style-type: none;
+}
+
+li.multiselector-selected-item {
+    float: left
+}
+
+.hidden {
+    display: none;
 }
 
 .contact li {

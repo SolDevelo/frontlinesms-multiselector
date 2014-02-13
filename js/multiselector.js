@@ -85,6 +85,10 @@
 
                 return $(document.createElement("li"))
                     .addClass("multiselector-list-item")
+                    .click(helpers.addSelectedItem)
+                    .hover(function() {
+                        $(this).toggleClass('hover');
+                    })
                     .text(child.name);
             },
             createGroupElement: function(group, limit) {
@@ -114,14 +118,30 @@
             },
             createInput: function() {
                 return $(document.createElement("input"))
-                    .addClass("multiselector-input")
+                    .addClass("multiselector-input");
+            },
+            createSelectionList: function(input) {
+                var selectionElement = $(document.createElement("ul"))
+                    .addClass("multiselector-selection")
                     .width(multiSelector.options.width);
+                var li = $(document.createElement("li"))
+                    .addClass("multiselector-new-item");
+
+                li.append(input);
+
+                return selectionElement.append(li);
+            },
+            createSelectedItem: function(text) {
+                return $(document.createElement("li"))
+                    .addClass('multiselector-selected-item')
+                    .text(text);
             },
             createResultsDiv: function() {
                 var ul = document.createElement("ul");
 
                 return $(document.createElement("div"))
                     .addClass("multiselector-results")
+                    .addClass("hidden")
                     .width(multiSelector.options.width)
                     .height(multiSelector.options.minResultsHeight)
                     .append(ul);
@@ -150,6 +170,100 @@
                 }
 
                 return sprintf("[%s]", code);
+            },
+            addSelectedItem: function(event) {
+                var existingSelection = $(".multiselector-selected-item");
+
+                if (existingSelection !== undefined) {
+                    for (var i = 0; i < existingSelection.length; i++) {
+                        if (existingSelection.get(i).innerText === event.currentTarget.innerText) {
+                            return;
+                        }
+                    }
+                }
+
+                $(".multiselector-new-item").before(
+                    helpers.createSelectedItem(event.currentTarget.innerText).click(helpers.deleteClickedSelection)
+                );
+                var i = (multiSelector.results.length !== undefined) ?
+                    multiSelector.results.length : 1;
+                for (; i > 0; i--) {
+                    for (var j = 0; j < multiSelector.results[i-1].members.length; j++) {
+                        if (multiSelector.results[i-1].members[j].name === event.currentTarget.innerText) {
+                            if (!multiSelector.selected.hasOwnProperty("length")) {
+                                multiSelector.selected = new Array();
+                            }
+                            multiSelector.selected.splice(-1, 0, multiSelector.results[i-1].members[j]);
+                            multiSelector.results[i-1].members.splice(j, 1);
+
+                            event.currentTarget.remove();
+                            helpers.refreshList($(".multiselector-input").val());
+                            return;
+                        }
+                    }
+                }
+            },
+            addUserDefinedSectionItem: function(input) {
+                var existingSelection = $(".multiselector-selected-item");
+
+                if (existingSelection !== undefined) {
+                    for (var i = 0; i < existingSelection.length; i++) {
+                        if (existingSelection.get(i).innerText === input) {
+                            return;
+                        }
+                    }
+                }
+
+                $(".multiselector-new-item").before(
+                    helpers.createSelectedItem(input).click(helpers.deleteClickedSelection)
+                );
+            },
+            deleteClickedSelection: function(event) {
+                helpers.deleteSelection(event.currentTarget.innerText);
+                event.currentTarget.remove();
+            },
+            deleteSelection: function(text) {
+                for (var i = 0; i < multiSelector.selected.length; i++) {
+                    if (text === multiSelector.selected[i].name) {
+                        multiSelector.selected.splice(i, 1);
+                        if (!$(".multiselector-results").hasClass("hidden")) {
+                            helpers.refreshList($(".multiselector-input").val());
+                        }
+                        return;
+                    }
+                }
+            },
+            getSelectedIDs: function() {
+                if (!multiSelector.selected.hasOwnProperty('length') || multiSelector.selected.length === 0) {
+                    return "";
+                }
+                var selectedID = new Array();
+                for (var i = 0; i < multiSelector.selected.length; i++) {
+                    selectedID[i] = multiSelector.selected[i].id;
+                }
+                return selectedID.toString();
+            },
+            populateList: function() {
+                if (multiSelector.results.length) {
+                    var contacts = helpers.getGroupingByName(constants.groupingNames.contacts);
+                    var groups = helpers.getGroupingByName(constants.groupingNames.groups);
+                    var smartgroups = helpers.getGroupingByName(constants.groupingNames.smartgroups);
+                    var resultsUl = $(".multiselector-results").find("ul");
+
+                    resultsUl.append(helpers.createGroupElement(contacts, multiSelector.options.contactItemDisplayLimit)).find("ul");
+                    resultsUl.append(helpers.createGroupElement(groups, multiSelector.options.groupItemDisplayLimit));
+                    resultsUl.append(helpers.createGroupElement(smartgroups, multiSelector.options.smartgroupItemDisplayLimit));
+                } else if (!$(".multiselector-results").hasClass("hidden")) {
+                    $(".multiselector-results").addClass("hidden");
+                }
+            },
+            refreshList: function(text) {
+                helpers.clearList();
+                if (text.length > 0) {
+                    multiSelector.results =
+                        contactService.getFilteredMatches(helpers.getSelectedIDs(), text);
+                }
+                helpers.populateList();
             }
         };
 
@@ -202,51 +316,62 @@
         // Function transforming the currently selected (with jQuery) element into the dropdown
         var transformElement = function() {
 
-            var populateList = function() {
-                if (multiSelector.results.length) {
-                    var contacts = helpers.getGroupingByName(constants.groupingNames.contacts);
-                    var groups = helpers.getGroupingByName(constants.groupingNames.groups);
-                    var smartgroups = helpers.getGroupingByName(constants.groupingNames.smartgroups);
-
-                    resultsUl.append(helpers.createGroupElement(contacts, multiSelector.options.contactItemDisplayLimit)).find("ul");
-                    resultsUl.append(helpers.createGroupElement(groups, multiSelector.options.groupItemDisplayLimit));
-                    resultsUl.append(helpers.createGroupElement(smartgroups, multiSelector.options.smartgroupItemDisplayLimit));
-                }
-            };
-
             var input = helpers.createInput();
+            var selection = helpers.createSelectionList(input);
             var results = helpers.createResultsDiv();
-            var resultsUl = results.find("ul");
 
             var handleKeys = function(e) {
                 var keyId = e.keyCode;
                 var text = input.val();
 
                 if (keyId === 13) {
-                    helpers.clearList();
-                    // Enter
+                    // Enter/Return
+                    input.val("");
+                    helpers.addUserDefinedSectionItem(text);
+                    helpers.refreshList("");
+                    multiSelector.previousText = "";
+                    return;
                 }
                 else if (keyId === 188) {
-                    helpers.clearList();
                     // Comma
+                    input.val("");
+                    text = text.substring(0, text.search(","));
+                    if (!text.length) {
+                        return;
+                    }
+                    helpers.addUserDefinedSectionItem(text);
+                    helpers.refreshList("");
+                    multiSelector.previousText = "";
+                    return;
+                } else if (keyId === 8) {
+                    // Backspace
+                    var selection = $(".multiselector-selected-item");
+
+                    if (selection.length > 0 && text.length === 0 &&
+                        multiSelector.previousText.length === 0) {
+
+                        helpers.deleteSelection(selection.get(-1).innerText);
+                        selection.get(-1).remove();
+                    }
                 }
 
-                if (text !== multiSelector.previousText)
-                {
-                    helpers.clearList();
-                    if (text.length > 0) {
-                        multiSelector.results = contactService.getFilteredMatches("", text);
-                    }
-                    populateList();
+                if (text !== multiSelector.previousText) {
+                    helpers.refreshList(text);
+                }
+
+                if (text.length > 0 && multiSelector.results.length > 0) {
+                    results.removeClass('hidden');
+                } else {
+                    results.addClass('hidden');
                 }
 
                 multiSelector.previousText = text;
             };
 
-            currentElement.html(input);
-            input.after(results);
+            currentElement.html(selection);
+            selection.after(results);
             //Handling input
-            input.keyup(handleKeys);
+            selection.keyup(handleKeys);
         };
         transformElement();
 
