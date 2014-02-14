@@ -305,7 +305,7 @@
         };
 
         var multiSelector = {
-            version: "0.2",
+            version: "0.3-SNAPSHOT",
             targetElement: currentElement,
             options: helpers.parseOptions(options, defaultOptions),
             selected: [],
