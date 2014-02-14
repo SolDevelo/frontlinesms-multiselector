@@ -73,7 +73,7 @@ $(document).ready(function() {
 
     test("createSelectedItem(\"Annie\")", function() {
         var selectedItem = helpers.createSelectedItem("Annie");
-        ok(selectedItem.hasClass('multiselector-selected-item'), "Proper class member");
+        equal(selectedItem.hasClass('multiselector-selected-item'), true, "Proper class member");
         equal($(selectedItem)[0].nodeName, "LI", "Proper node used");
         equal(selectedItem.text(), "Annie", "Proper value");
     });
@@ -92,8 +92,8 @@ $(document).ready(function() {
         equal($(".multiselector-selected-item").length, 1, "One element selected");
         equal(ms.selected.length, 1, "Check is it go to selected array");
         $(".multiselector-selected-item").trigger("click");
-        ok(ms.selected.length === 0, "Check is it removed successfully deleted from selected array");
-        ok($(".multiselector-selected-item").length === 0, "Check if selection exist");
+        equal(ms.selected.length, 0, "Check is it removed successfully deleted from selected array");
+        equal($(".multiselector-selected-item").length, 0, "Check if selection exist");
 
         input.val("");
         keyEvent.which = 8;
@@ -106,8 +106,8 @@ $(document).ready(function() {
         equal($(".multiselector-selected-item").text(), "+112", "Proper number visible");
         equal(ms.selected.length, 1, "Is added to selected array?");
         $(".multiselector-selected-item").trigger("click");
-        ok(ms.selected.length === 0, "Is deleted from selected array?");
-        ok($(".multiselector-selected-item").length === 0, "Check if number selection exist");
+        equal(ms.selected.length, 0, "Is deleted from selected array?");
+        equal($(".multiselector-selected-item").length, 0, "Check if number selection exist");
     });
 
     //Restore defualt value

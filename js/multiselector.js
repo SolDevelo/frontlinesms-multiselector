@@ -327,10 +327,8 @@
 
                     if (!$(".multiselector-results").hasClass("hidden")) {
                         $(".multiselector-list-item").eq(0).trigger("click");
-                    } else if (text[0] === "+" && text.match(/[+][0-9]+/g)) {
-                        if (text.match(/[+][0-9]+/)[0].length === text.length) {
+                    } else if (text.match(/^\+[0-9]{3,}$/g)) {
                             helpers.addPhoneNumber(text);
-                        }
                     }
 
                     multiSelector.previousText = "";
