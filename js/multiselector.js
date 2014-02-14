@@ -169,10 +169,11 @@
             },
             createShowAllContacts: function() {
                 var message = helpers.getMessage("common.item.show.all");
-                return $(".multiselector-results").append($(document.createElement("div"))
+                return $(".multiselector-results").append(
+                    $(document.createElement("div"))
                     .addClass("showAllContacts")
                     .text(message)
-                )
+                );
             },
             getMessage: function(code) {
                 if (multiSelector.translations !== null &&
@@ -273,7 +274,7 @@
                 return selectedID.toString();
             },
             populateList: function(option) {
-                if (option == undefined) {
+                if (option === undefined) {
                     option = true;
                 }
                 if (multiSelector.results.length) {
@@ -298,13 +299,13 @@
             },
             showAllContacts: function() {
                 helpers.clearList();
-                multiSelector.results = contactService.getFilteredMatches(helpers.getSelectedIDs())
+                multiSelector.results = contactService.getFilteredMatches(helpers.getSelectedIDs());
                 helpers.populateList(false);
             }
         };
 
         var multiSelector = {
-            version: "0.1-SNAPSHOT",
+            version: "0.2",
             targetElement: currentElement,
             options: helpers.parseOptions(options, defaultOptions),
             selected: [],
@@ -415,7 +416,7 @@
         helpers.createShowAllContacts();
         $('.showAllContacts').click(function() {
             helpers.showAllContacts();
-        })
+        });
 
         // Return the selector object for public function access
         return multiSelector;
