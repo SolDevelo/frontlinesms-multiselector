@@ -44,7 +44,7 @@ $(document).ready(function() {
 
     test("clearList()", function() {
         helpers.clearList();
-        equal($(".multiselector-results").html(), "<ul></ul>", "Test clearing matches list");
+        equal($(".multiselector-results").html(), "<ul></ul><div class=\"showAllContacts\">Show all contacts</div>", "Test clearing matches list");
     });
 
     test("Translation test", function() {

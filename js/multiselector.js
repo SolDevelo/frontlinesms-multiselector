@@ -91,7 +91,10 @@
                     })
                     .text(child.name);
             },
-            createGroupElement: function(group, limit) {
+            createGroupElement: function(group, limit, useLimit) {
+                if (useLimit === undefined) {
+                    useLimit = true;
+                }
                 if (group === undefined || group === null || limit < 1) {
                     return null;
                 }
@@ -107,11 +110,18 @@
                 }
 
                 var i;
-                for (i = 0; i < group.members.length && i < limit; i++) {
-                    groupElement.append(helpers.createGroupChildElement(group, group.members[i]));
-                }
-                if (i === limit && group.members.length !== i) {
-                    groupElement.append(helpers.createItemLimitInfoElement(i, group.members.length));
+
+                if (!useLimit) {
+                    for (i = 0; i < group.members.length; i++) {
+                        groupElement.append(helpers.createGroupChildElement(group, group.members[i]));
+                    }
+                } else {
+                    for (i = 0; i < group.members.length && i < limit; i++) {
+                        groupElement.append(helpers.createGroupChildElement(group, group.members[i]));
+                    }
+                    if (i === limit && group.members.length !== i) {
+                        groupElement.append(helpers.createItemLimitInfoElement(i, group.members.length));
+                    }
                 }
 
                 return listItem;
@@ -157,6 +167,13 @@
                     .addClass("multiselector-item-limit-info")
                     .text(message);
             },
+            createShowAllContacts: function() {
+                var message = helpers.getMessage("common.item.show.all");
+                return $(".multiselector-results").append($(document.createElement("div"))
+                    .addClass("showAllContacts")
+                    .text(message)
+                )
+            },
             getMessage: function(code) {
                 if (multiSelector.translations !== null &&
                     multiSelector.translations.hasOwnProperty(multiSelector.options.language) &&
@@ -192,11 +209,30 @@
                             multiSelector.results[i].members.splice(j, 1);
 
                             $(event.currentTarget).remove();
-                            helpers.refreshList($(".multiselector-input").val());
+                            if ($(".multiselector-item-limit-info").length) {
+                                helpers.refreshList($(".multiselector-input").val());
+                            } else {
+                                helpers.showAllContacts();
+                            }
                             return;
                         }
                     }
                 }
+            },
+            addUserDefinedSectionItem: function(input) {
+                var existingSelection = $(".multiselector-selected-item");
+
+                if (existingSelection !== undefined) {
+                    for (var i = 0; i < existingSelection.length; i++) {
+                        if (existingSelection.get(i).innerText === input) {
+                            return;
+                        }
+                    }
+                }
+
+                $(".multiselector-new-item").before(
+                    helpers.createSelectedItem(input).click(helpers.deleteClickedSelection)
+                );
             },
             addPhoneNumber: function(number) {
                 multiSelector.selected.push({
@@ -216,7 +252,11 @@
                     if (text === multiSelector.selected[i].name) {
                         multiSelector.selected.splice(i, 1);
                         if (!$(".multiselector-results").hasClass("hidden")) {
-                            helpers.refreshList($(".multiselector-input").val());
+                            if ($(".multiselector-item-limit-info").length) {
+                                helpers.refreshList($(".multiselector-input").val());
+                            } else {
+                                helpers.showAllContacts();
+                            }
                         }
                         return;
                     }
@@ -232,16 +272,18 @@
                 }
                 return selectedID.toString();
             },
-            populateList: function() {
+            populateList: function(option) {
+                if (option == undefined) {
+                    option = true;
+                }
                 if (multiSelector.results.length) {
                     var contacts = helpers.getGroupingByName(constants.groupingNames.contacts);
                     var groups = helpers.getGroupingByName(constants.groupingNames.groups);
                     var smartgroups = helpers.getGroupingByName(constants.groupingNames.smartgroups);
                     var resultsUl = $(".multiselector-results").find("ul");
-
-                    resultsUl.append(helpers.createGroupElement(contacts, multiSelector.options.contactItemDisplayLimit)).find("ul");
-                    resultsUl.append(helpers.createGroupElement(groups, multiSelector.options.groupItemDisplayLimit));
-                    resultsUl.append(helpers.createGroupElement(smartgroups, multiSelector.options.smartgroupItemDisplayLimit));
+                    resultsUl.append(helpers.createGroupElement(contacts, multiSelector.options.contactItemDisplayLimit, option)).find("ul");
+                    resultsUl.append(helpers.createGroupElement(groups, multiSelector.options.groupItemDisplayLimit, option));
+                    resultsUl.append(helpers.createGroupElement(smartgroups, multiSelector.options.smartgroupItemDisplayLimit, option));
                 } else if (!$(".multiselector-results").hasClass("hidden")) {
                     $(".multiselector-results").addClass("hidden");
                 }
@@ -253,6 +295,11 @@
                         contactService.getFilteredMatches(helpers.getSelectedIDs(), text);
                 }
                 helpers.populateList();
+            },
+            showAllContacts: function() {
+                helpers.clearList();
+                multiSelector.results = contactService.getFilteredMatches(helpers.getSelectedIDs())
+                helpers.populateList(false);
             }
         };
 
@@ -265,7 +312,8 @@
             previousText: "",
             defaultTranslations: {
                 "en_US": {
-                    "common.item.limit.label": "Showing %s out of %s matches"
+                    "common.item.limit.label": "Showing %s out of %s matches",
+                    "common.item.show.all": "Show all contacts"
                 }
             },
             translations: (translations === undefined) ? null : translations
@@ -364,6 +412,10 @@
             selection.keyup(handleKeys);
         };
         transformElement();
+        helpers.createShowAllContacts();
+        $('.showAllContacts').click(function() {
+            helpers.showAllContacts();
+        })
 
         // Return the selector object for public function access
         return multiSelector;
