@@ -198,6 +198,15 @@
                     }
                 }
             },
+            addPhoneNumber: function(number) {
+                multiSelector.selected.push({
+                    name: number,
+                    id: number.substring(1),
+                    metadata: number
+                });
+                $(".multiselector-new-item").before($(helpers.createSelectedItem(number))
+                    .click(helpers.deleteClickedSelection));
+            },
             deleteClickedSelection: function(event) {
                 helpers.deleteSelection($(event.currentTarget).text());
                 $(event.currentTarget).remove();
@@ -318,6 +327,10 @@
 
                     if (!$(".multiselector-results").hasClass("hidden")) {
                         $(".multiselector-list-item").eq(0).trigger("click");
+                    } else if (text[0] === "+" && text.match(/[+][0-9]+/g)) {
+                        if (text.match(/[+][0-9]+/)[0].length === text.length) {
+                            helpers.addPhoneNumber(text);
+                        }
                     }
 
                     multiSelector.previousText = "";

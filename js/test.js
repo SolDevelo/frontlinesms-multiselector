@@ -100,6 +100,16 @@ $(document).ready(function() {
         input.trigger(keyEvent);
     });
 
+    test("Adding phone number to the selection", function() {
+        helpers.addPhoneNumber("+112");
+        equal($(".multiselector-selected-item").length, 1, "Adding number +112");
+        equal($(".multiselector-selected-item").text(), "+112", "Proper number visible");
+        equal(ms.selected.length, 1, "Is added to selected array?");
+        $(".multiselector-selected-item").trigger("click");
+        ok(ms.selected.length === 0, "Is deleted from selected array?");
+        ok($(".multiselector-selected-item").length === 0, "Check if number selection exist");
+    });
+
     //Restore defualt value
     ms.results = defaultResultsValue;
 });
