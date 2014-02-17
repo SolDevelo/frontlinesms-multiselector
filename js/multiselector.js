@@ -92,6 +92,7 @@
 
                 if (child.metadata === "0 members") {
                     childElement.addClass("disabled");
+                    childElement.attr("title", helpers.getMessage("common.group.select.disabled"));
                     return childElement;
                 }
 
@@ -322,7 +323,8 @@
             defaultTranslations: {
                 "en_US": {
                     "common.item.limit.label": "Showing %s out of %s matches",
-                    "common.item.show.all": "Show all contacts"
+                    "common.item.show.all": "Show all contacts",
+                    "common.group.select.disabled": "This group is disabled and you can not select it."
                 }
             },
             translations: (translations === undefined) ? null : translations
