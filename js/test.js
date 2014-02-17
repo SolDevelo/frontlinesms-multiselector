@@ -4,6 +4,7 @@ $(document).ready(function() {
     var helpers = ms.getHelperFunctions();
     var defaultTranslation = ms.translations;
 
+    //1
     test("getFilteredMatches(\"\", \'\') - whole database", function() {
         ms.results = contactService.getFilteredMatches("", '');
 
@@ -12,6 +13,7 @@ $(document).ready(function() {
         equal(helpers.getGroupingByName('smartgroups').members.length, 2, "Found proper number of matching items in smartgroups");
     });
 
+    //2
     test("getFilteredMatches(\"\", \'朴\') - non-latin characters", function() {
         ms.results = contactService.getFilteredMatches("", '朴');
 
@@ -20,6 +22,7 @@ $(document).ready(function() {
         equal(helpers.getGroupingByName('smartgroups'), null, "Found proper number of matching items in smartgroups");
     });
 
+    //3
     test("getFilteredMatches(\"\", \'i\') - latin characters", function() {
         ms.results = contactService.getFilteredMatches("", 'i');
 
@@ -28,11 +31,13 @@ $(document).ready(function() {
         equal(helpers.getGroupingByName('smartgroups').members.length, 1, "Found proper number of matching items in smartgroups");
     });
 
-    test("createGroupChildElement(\"42\", {name: \"John Doe\"})", function() {
-        equal(helpers.createGroupChildElement("42", {name: "John Doe"})[0].nodeName, "LI", "Proper node used");
-        equal(helpers.createGroupChildElement("42", {name: "John Doe"}).text(), "John Doe", "Proper element value");
+    //4
+    test("createGroupChildElement(\"42\", {name: \"John Doe\", id: \"contact-700\", metadata: \"+123456789\"})", function() {
+        equal(helpers.createGroupChildElement("42", {name: "John Doe", id: "contact-700", metadata: "+123456789"})[0].nodeName, "LI", "Proper node used");
+        equal(helpers.createGroupChildElement("42", {name: "John Doe", id: "contact-700", metadata: "+123456789"}).text(), "John Doe", "Proper element value");
     });
 
+    //5
     test("createGroupElement('contacts')", function() {
         ms.results = contactService.getFilteredMatches("", 'i');
         var createdGroupElement = helpers.createGroupElement(helpers.getGroupingByName('contacts'), 4);
@@ -42,11 +47,13 @@ $(document).ready(function() {
         notEqual(createdGroupElement.find("ul").html(), null, "List should be filled");
     });
 
+    //6
     test("clearList()", function() {
         helpers.clearList();
         equal($(".multiselector-results").html(), "<ul></ul><div class=\"showAllContacts\">Show all contacts</div>", "Test clearing matches list");
     });
 
+    //7
     test("Translation test", function() {
         //lack of user defined translation
         var translationBackup = ms.translations;
@@ -65,12 +72,14 @@ $(document).ready(function() {
         ms.translations = translationBackup;
     });
 
+    //8
     test("createSelectionList(\"x\")", function() {
         var selectionList = helpers.createSelectionList("x");
         equal(selectionList.html(), "<li class=\"multiselector-new-item\">x</li>", "Proper class member and value");
         equal(selectionList[0].nodeName, "UL", "Proper node used");
     });
 
+    //9
     test("createSelectedItem(\"Annie\")", function() {
         var selectedItem = helpers.createSelectedItem("Annie");
         equal(selectedItem.hasClass('multiselector-selected-item'), true, "Proper class member");
@@ -78,6 +87,7 @@ $(document).ready(function() {
         equal(selectedItem.text(), "Annie", "Proper value");
     });
 
+    //10
     test("addSelectedItem() and deleteClickedSelection()", function() {
         var input = $(".multiselector-input");
         var keyEvent = jQuery.Event("keyup");
@@ -100,6 +110,7 @@ $(document).ready(function() {
         input.trigger(keyEvent);
     });
 
+    //11
     test("Adding phone number to the selection", function() {
         helpers.addPhoneNumber("+112");
         equal($(".multiselector-selected-item").length, 1, "Adding number +112");

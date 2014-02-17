@@ -83,13 +83,20 @@
                     return null;
                 }
 
-                return $(document.createElement("li"))
+                var childElement = $(document.createElement("li"))
                     .addClass("multiselector-list-item")
-                    .click(helpers.addSelectedItem)
                     .hover(function() {
                         $(this).toggleClass('hover');
                     })
                     .text(child.name);
+
+                if (child.metadata === "0 members") {
+                    childElement.addClass("disabled");
+                    return childElement;
+                }
+
+                childElement.click(helpers.addSelectedItem);
+                return childElement;
             },
             createGroupElement: function(group, limit, useLimit) {
                 if (useLimit === undefined) {
@@ -203,6 +210,7 @@
                 var item = $(helpers.createSelectedItem($(event.currentTarget).text()))
                     .click(helpers.deleteClickedSelection);
                 $(".multiselector-new-item").before(item);
+
                 for (var i = multiSelector.results.length - 1; i >= 0; i--) {
                     for (var j = 0; j < multiSelector.results[i].members.length; j++) {
                         if (multiSelector.results[i].members[j].name === $(event.currentTarget).text()) {
