@@ -90,7 +90,7 @@
                     })
                     .text(child.name);
 
-                if (child.metadata === "0 members") {
+                if (child.disabled !== undefined && child.disabled === true) {
                     childElement.addClass("disabled");
                     childElement.attr("title", helpers.getMessage("common.group.select.disabled"));
                     return childElement;
