@@ -43,9 +43,9 @@
 
         var constants = {
             groupingNames: {
-                contacts: 'contacts',
-                groups: 'groups',
-                smartgroups: 'smartgroups'
+                contacts: 'Contacts',
+                groups: 'Groups',
+                smartgroups: 'Smart Groups'
             }
         };
 
