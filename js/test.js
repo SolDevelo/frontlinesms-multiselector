@@ -99,11 +99,11 @@ $(document).ready(function() {
 
         equal($(".multiselector-list-item").length, 1, "One element found for \"alicia\"");
         $(".multiselector-list-item").trigger("click");
-        equal($(".multiselector-selected-item").length, 1, "One element selected");
-        equal(ms.selected.length, 1, "Check is it go to selected array");
-        $(".multiselector-selected-item").trigger("click");
-        equal(ms.selected.length, 0, "Check is it removed successfully deleted from selected array");
-        equal($(".multiselector-selected-item").length, 0, "Check if selection exist");
+        equal($(".multiselector-selected-item").length, 5, "One element selected");
+        equal(ms.selected.length, 5, "Check is it go to selected array");
+        $(".multiselector-selected-item").eq(-1).trigger("click");
+        equal(ms.selected.length, 4, "Check is it removed successfully deleted from selected array");
+        equal($(".multiselector-selected-item").length, 4, "Check if selection exist");
 
         input.val("");
         keyEvent.which = 8;
@@ -113,12 +113,21 @@ $(document).ready(function() {
     //11
     test("Adding phone number to the selection", function() {
         helpers.addPhoneNumber("+112");
-        equal($(".multiselector-selected-item").length, 1, "Adding number +112");
-        equal($(".multiselector-selected-item").text(), "+112", "Proper number visible");
-        equal(ms.selected.length, 1, "Is added to selected array?");
-        $(".multiselector-selected-item").trigger("click");
-        equal(ms.selected.length, 0, "Is deleted from selected array?");
-        equal($(".multiselector-selected-item").length, 0, "Check if number selection exist");
+        equal($(".multiselector-selected-item").length, 5, "Adding number +112");
+        equal($(".multiselector-selected-item").eq(-1).text(), "+112", "Proper number visible");
+        equal(ms.selected.length, 5, "Is added to selected array?");
+        $(".multiselector-selected-item").eq(-1).trigger("click");
+        equal(ms.selected.length, 4, "Is deleted from selected array?");
+        equal($(".multiselector-selected-item").length, 4, "Check if number selection exist");
+    });
+
+    test("Loading selected users by given array of ID", function() {
+        var exampleIdArray = ["contact-7", "contact-69", "hello", "group-2", "smartgroup-1"];
+        var selected = helpers.getSelectionByIDs(exampleIdArray);
+
+        equal(selected.length, 3, "Check for size of returned array by getSelectionByIDs(...)");
+        equal(ms.selected.length, 4, "Check for real size of selected array");
+        equal($(".multiselector-selected-item").length, 4, "Check selection for being available for user")
     });
 
     //Restore defualt value

@@ -14,5 +14,6 @@ $(document).ready(function() {
             "common.group.select.disabled": "This group is disabled and you can not select it."
         }
     };
-    ms = $("div#container").multiselect(options, translations);
+    var preloadedIDs = ["contact-6", "contact-10", "110", "+48987654321"];
+    ms = $("div#container").multiselect(options, translations, preloadedIDs);
 });

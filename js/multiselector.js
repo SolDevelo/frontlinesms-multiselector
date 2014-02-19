@@ -26,7 +26,7 @@
 (function($) {
     "use strict";
 
-    $.fn.multiselect = function(options, translations) {
+    $.fn.multiselect = function(options, translations, defaultSelection) {
         // currently selected element === this
         // assigning it to a variable for use in inline functions
         var currentElement = this;
@@ -229,25 +229,14 @@
                     }
                 }
             },
-            addUserDefinedSectionItem: function(input) {
-                var existingSelection = $(".multiselector-selected-item");
-
-                if (existingSelection !== undefined) {
-                    for (var i = 0; i < existingSelection.length; i++) {
-                        if (existingSelection.get(i).innerText === input) {
-                            return;
-                        }
-                    }
+            addPhoneNumber: function(number, selected) {
+                if (!selected) {
+                    selected = multiSelector.selected;
                 }
 
-                $(".multiselector-new-item").before(
-                    helpers.createSelectedItem(input).click(helpers.deleteClickedSelection)
-                );
-            },
-            addPhoneNumber: function(number) {
-                multiSelector.selected.push({
+                selected.push({
                     name: number,
-                    id: number.substring(1),
+                    id: number,
                     metadata: number
                 });
                 $(".multiselector-new-item").before($(helpers.createSelectedItem(number))
@@ -306,6 +295,39 @@
                 }
                 helpers.populateList();
             },
+            getSelectionByIDs: function(IDs) {
+                var selected = [];
+                var isAddedToSelection = [];
+                if (IDs && IDs.length) {
+                    var contactBase = contactService.getAll();
+
+                    if (contactBase) {
+                        for (var i in IDs) {
+                            for (var g in contactBase) {
+                                var found = false;
+                                for (var m in contactBase[g].members) {
+                                    if (IDs[i] === contactBase[g].members[m].id) {
+                                        selected.push(contactBase[g].members[m]);
+                                        found = true;
+                                        isAddedToSelection[i] = true;
+                                        break;
+                                    }
+                                }
+                                if (found) {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    for (var i in IDs) {
+                        if (!isAddedToSelection[i] && /^\+?[0-9]+$/g.test(IDs[i])) {
+                            helpers.addPhoneNumber(IDs[i], selected);
+                        }
+                    }
+                }
+                return selected;
+            },
             showAllContacts: function() {
                 helpers.clearList();
                 multiSelector.results = contactService.getFilteredMatches(helpers.getSelectedIDs());
@@ -317,7 +339,7 @@
             version: "0.3-SNAPSHOT",
             targetElement: currentElement,
             options: helpers.parseOptions(options, defaultOptions),
-            selected: [],
+            selected: helpers.getSelectionByIDs(defaultSelection),
             results: {},
             previousText: "",
             defaultTranslations: {
@@ -416,6 +438,13 @@
 
                 multiSelector.previousText = text;
             };
+
+            for (var i in multiSelector.selected) {
+                var selectedItem = helpers.createSelectedItem(multiSelector.selected[i].name)
+                    .click(helpers.deleteClickedSelection);
+
+                selection.find("li").eq(-1).before(selectedItem);
+            }
 
             currentElement.html(selection);
             selection.after(results);
