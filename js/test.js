@@ -50,7 +50,7 @@ $(document).ready(function() {
     //6
     test("clearList()", function() {
         helpers.clearList();
-        equal($(".multiselector-results").html(), "<ul></ul><div class=\"showAllContacts\">Show all contacts</div>", "Test clearing matches list");
+        equal($(".multiselector-results").html(), "<ul></ul>", "Test clearing matches list");
     });
 
     //7
@@ -122,7 +122,7 @@ $(document).ready(function() {
     });
 
     test("Loading selected users by given array of ID", function() {
-        var exampleIdArray = ["contact-7", "contact-69", "hello", "group-2", "smartgroup-1"];
+        var exampleIdArray = ["contact-7", "contact-69", "hello", "group-2", "smartgroup-1", "112", "+113"];
         var selected = helpers.getSelectionByIDs(exampleIdArray);
 
         equal(selected.length, 3, "Check for size of returned array by getSelectionByIDs(...)");

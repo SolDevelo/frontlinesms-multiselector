@@ -46,6 +46,9 @@
                 contacts: 'Contacts',
                 groups: 'Groups',
                 smartgroups: 'Smart Groups'
+            },
+            regExPatterns: {
+                phoneNumber: /^\+?\d+$/g
             }
         };
 
@@ -179,8 +182,12 @@
                 var message = helpers.getMessage("common.item.show.all");
                 return $(".multiselector-results").append(
                     $(document.createElement("div"))
-                    .addClass("showAllContacts")
-                    .text(message)
+                        .addClass("show-all-contacts")
+                        .text(message)
+                        .click(function(event) {
+                            helpers.refreshList("", true);
+                            $(event.currentTarget).remove();
+                        })
                 );
             },
             getMessage: function(code) {
@@ -219,10 +226,10 @@
                             multiSelector.results[i].members.splice(j, 1);
 
                             $(event.currentTarget).remove();
-                            if ($(".multiselector-item-limit-info").length) {
+                            if ($(".show-all-contacts").length) {
                                 helpers.refreshList($(".multiselector-input").val());
                             } else {
-                                helpers.showAllContacts();
+                                helpers.refreshList("", true);
                             }
                             return;
                         }
@@ -242,6 +249,19 @@
                 $(".multiselector-new-item").before($(helpers.createSelectedItem(number))
                     .click(helpers.deleteClickedSelection));
             },
+            addPhoneNumberEvent: function(event) {
+                var input = $(".multiselector-input");
+
+                //prevents from invalid number put by copy-paste or cut by mouse clicks
+                if (input.val().match(constants.regExPatterns.phoneNumber) === null) {
+                    $(event.currentTarget).remove();
+                    return;
+                }
+
+                helpers.addPhoneNumber(input.val());
+                input.val("");
+                $(event.currentTarget).remove();
+            },
             deleteClickedSelection: function(event) {
                 helpers.deleteSelection($(event.currentTarget).text());
                 $(event.currentTarget).remove();
@@ -251,10 +271,10 @@
                     if (text === multiSelector.selected[i].name) {
                         multiSelector.selected.splice(i, 1);
                         if (!$(".multiselector-results").hasClass("hidden")) {
-                            if ($(".multiselector-item-limit-info").length) {
+                            if ($(".show-all-contacts").length) {
                                 helpers.refreshList($(".multiselector-input").val());
                             } else {
-                                helpers.showAllContacts();
+                                helpers.refreshList("", true);
                             }
                         }
                         return;
@@ -287,15 +307,15 @@
                     $(".multiselector-results").addClass("hidden");
                 }
             },
-            refreshList: function(text) {
+            refreshList: function(text, forceGetAll) {
                 helpers.clearList();
-                if (text.length > 0) {
+                if (text.length > 0 || forceGetAll === true) {
                     multiSelector.results =
                         contactService.getFilteredMatches(helpers.getSelectedIDs(), text);
                 }
-                helpers.populateList();
+                helpers.populateList(!forceGetAll);
             },
-            getSelectionByIDs: function(IDs) {
+            getSelectionByIDs: function(IDs, fillList) {
                 var selected = [];
                 var isAddedToSelection = [];
                 if (IDs && IDs.length) {
@@ -320,18 +340,15 @@
                         }
                     }
 
-                    for (var i in IDs) {
-                        if (!isAddedToSelection[i] && /^\+?[0-9]+$/g.test(IDs[i])) {
-                            helpers.addPhoneNumber(IDs[i], selected);
+                    if (fillList) {
+                        for (var i in IDs) {
+                            if (!isAddedToSelection[i] && IDs[i].match(constants.regExPatterns.phoneNumber)) {
+                                helpers.addPhoneNumber(IDs[i], selected);
+                            }
                         }
                     }
                 }
                 return selected;
-            },
-            showAllContacts: function() {
-                helpers.clearList();
-                multiSelector.results = contactService.getFilteredMatches(helpers.getSelectedIDs());
-                helpers.populateList(false);
             }
         };
 
@@ -339,14 +356,15 @@
             version: "0.3-SNAPSHOT",
             targetElement: currentElement,
             options: helpers.parseOptions(options, defaultOptions),
-            selected: helpers.getSelectionByIDs(defaultSelection),
+            selected: helpers.getSelectionByIDs(defaultSelection, true),
             results: {},
             previousText: "",
             defaultTranslations: {
                 "en_US": {
                     "common.item.limit.label": "Showing %s out of %s matches",
                     "common.item.show.all": "Show all contacts",
-                    "common.group.select.disabled": "This group is disabled and you can not select it."
+                    "common.group.select.disabled": "This group is disabled and you can not select it.",
+                    "common.item.add.number": "Add this phone number"
                 }
             },
             translations: (translations === undefined) ? null : translations
@@ -406,10 +424,10 @@
                         return;
                     }
 
-                    if (!$(".multiselector-results").hasClass("hidden")) {
+                    if ($(".multiselector-list-item").length) {
                         $(".multiselector-list-item").eq(0).trigger("click");
-                    } else if (text.match(/^\+[0-9]{3,}$/g)) {
-                            helpers.addPhoneNumber(text);
+                    } else if (text.match(constants.regExPatterns.phoneNumber)) {
+                        helpers.addPhoneNumber(text);
                     }
 
                     multiSelector.previousText = "";
@@ -430,10 +448,26 @@
                     helpers.refreshList(text);
                 }
 
-                if (text.length > 0 && multiSelector.results.length > 0) {
+                if (!$(".add-phone-number").length && text.match(constants.regExPatterns.phoneNumber) !== null) {
+                    var addNumberElement = $(document.createElement("div"))
+                        .addClass("add-phone-number")
+                        .click(helpers.addPhoneNumberEvent)
+                        .text(helpers.getMessage("common.item.add.number"));
+
+                    $(".multiselector-results").prepend(addNumberElement);
+                } else if ($(".add-phone-number").length && text.match(constants.regExPatterns.phoneNumber) === null) {
+                    $(".add-phone-number").eq(0).remove();
+                }
+
+                if (text.length > 0 && (multiSelector.results.length > 0 || text.match(constants.regExPatterns.phoneNumber) !== null)) {
                     results.removeClass('hidden');
+
                 } else {
                     results.addClass('hidden');
+                }
+
+                if (!$(".show-all-contacts").length) {
+                    helpers.createShowAllContacts();
                 }
 
                 multiSelector.previousText = text;
@@ -452,10 +486,6 @@
             selection.keyup(handleKeys);
         };
         transformElement();
-        helpers.createShowAllContacts();
-        $('.showAllContacts').click(function() {
-            helpers.showAllContacts();
-        });
 
         // Return the selector object for public function access
         return multiSelector;
