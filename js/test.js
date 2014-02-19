@@ -5,30 +5,30 @@ $(document).ready(function() {
     var defaultTranslation = ms.translations;
 
     //1
-    test("getFilteredMatches(\"\", \'\') - whole database", function() {
-        ms.results = contactService.getFilteredMatches("", '');
+    test("getFilteredMatches(\"\",\"\") - whole database", function() {
+        ms.results = contactService.getFilteredMatches("","");
 
-        equal(helpers.getGroupingByName('contacts').members.length , 10, "Found proper number of matching items in contacts");
-        equal(helpers.getGroupingByName('groups').members.length, 2, "Found proper number of matching items in groups");
-        equal(helpers.getGroupingByName('smartgroups').members.length, 2, "Found proper number of matching items in smartgroups");
+        equal(helpers.getGroupingByName('Contacts').members.length , 13, "Found proper number of matching items in contacts");
+        equal(helpers.getGroupingByName('Groups').members.length, 3, "Found proper number of matching items in groups");
+        equal(helpers.getGroupingByName('Smart Groups').members.length, 2, "Found proper number of matching items in smartgroups");
     });
 
     //2
     test("getFilteredMatches(\"\", \'朴\') - non-latin characters", function() {
         ms.results = contactService.getFilteredMatches("", '朴');
 
-        equal(helpers.getGroupingByName('contacts').members.length , 1, "Found proper number of matching items in contacts");
-        equal(helpers.getGroupingByName('groups'), null, "Found proper number of matching items in groups");
-        equal(helpers.getGroupingByName('smartgroups'), null, "Found proper number of matching items in smartgroups");
+        equal(helpers.getGroupingByName('Contacts').members.length , 1, "Found proper number of matching items in contacts");
+        equal(helpers.getGroupingByName('Groups'), null, "Found proper number of matching items in groups");
+        equal(helpers.getGroupingByName('Smart Groups'), null, "Found proper number of matching items in smartgroups");
     });
 
     //3
     test("getFilteredMatches(\"\", \'i\') - latin characters", function() {
         ms.results = contactService.getFilteredMatches("", 'i');
 
-        equal(helpers.getGroupingByName('contacts').members.length , 7, "Found proper number of matching items in contacts");
-        equal(helpers.getGroupingByName('groups').members.length, 1, "Found proper number of matching items in groups");
-        equal(helpers.getGroupingByName('smartgroups').members.length, 1, "Found proper number of matching items in smartgroups");
+        equal(helpers.getGroupingByName('Contacts').members.length , 9, "Found proper number of matching items in contacts");
+        equal(helpers.getGroupingByName('Groups').members.length, 2, "Found proper number of matching items in groups");
+        equal(helpers.getGroupingByName('Smart Groups').members.length, 1, "Found proper number of matching items in smartgroups");
     });
 
     //4
@@ -40,9 +40,9 @@ $(document).ready(function() {
     //5
     test("createGroupElement('contacts')", function() {
         ms.results = contactService.getFilteredMatches("", 'i');
-        var createdGroupElement = helpers.createGroupElement(helpers.getGroupingByName('contacts'), 4);
+        var createdGroupElement = helpers.createGroupElement(helpers.getGroupingByName('Contacts'), 4);
 
-        equal(createdGroupElement.html(), "<span>contacts</span><ul><li class=\"multiselector-list-item\">Alicia</li><li class=\"multiselector-list-item\">Dominic</li><li class=\"multiselector-list-item\">Emily</li><li class=\"multiselector-list-item\">Felix</li><li class=\"multiselector-item-limit-info\">Showing 4 out of 7 matches</li></ul>");
+        equal(createdGroupElement.html(), "<span>Contacts</span><ul><li class=\"multiselector-list-item\">Alicia</li><li class=\"multiselector-list-item\">Dominic</li><li class=\"multiselector-list-item\">Emily</li><li class=\"multiselector-list-item\">Felix</li><li class=\"multiselector-item-limit-info\">Showing 4 out of 9 matches</li></ul>");
         equal(createdGroupElement[0].nodeName, "LI", "Proper node used");
         notEqual(createdGroupElement.find("ul").html(), null, "List should be filled");
     });
