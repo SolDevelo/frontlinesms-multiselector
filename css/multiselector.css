@@ -16,8 +16,8 @@ li.multiselector-list-item {
     background-color: #FFFFFF;
 }
 
-li.multiselector-list-item.hover {
-    background-color: #8080FF;
+li.multiselector-list-item.highlight, div.show-all-contacts.highlight, div.add-phone-number.highlight {
+    background-color: #F00000;
     cursor: pointer;
 }
 

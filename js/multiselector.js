@@ -88,8 +88,9 @@
 
                 var childElement = $(document.createElement("li"))
                     .addClass("multiselector-list-item")
-                    .hover(function() {
-                        $(this).toggleClass('hover');
+                    .mouseenter(function(event) {
+                        $(".highlight").removeClass("highlight");
+                        $(event.currentTarget).addClass("highlight");
                     })
                     .text(child.name);
 
@@ -155,6 +156,9 @@
             createSelectedItem: function(text) {
                 return $(document.createElement("li"))
                     .addClass('multiselector-selected-item')
+                    .hover(function() {
+                        $(this).toggleClass('hover');
+                    })
                     .text(text);
             },
             createResultsDiv: function() {
@@ -187,6 +191,12 @@
                         .click(function(event) {
                             helpers.refreshList("", true);
                             $(event.currentTarget).remove();
+                            helpers.highlightItem();
+                            $(".multiselector-input").focus();
+                        })
+                        .mouseenter(function(event) {
+                            $(".highlight").removeClass("highlight");
+                            $(event.currentTarget).addClass("highlight");
                         })
                 );
             },
@@ -231,6 +241,8 @@
                             } else {
                                 helpers.refreshList("", true);
                             }
+                            helpers.highlightItem();
+                            $(".multiselector-input").focus();
                             return;
                         }
                     }
@@ -239,6 +251,12 @@
             addPhoneNumber: function(number, selected) {
                 if (!selected) {
                     selected = multiSelector.selected;
+                }
+
+                for (var i in selected) {
+                    if (selected[i].name === number) {
+                        return;
+                    }
                 }
 
                 selected.push({
@@ -252,19 +270,21 @@
             addPhoneNumberEvent: function(event) {
                 var input = $(".multiselector-input");
 
-                //prevents from invalid number put by copy-paste or cut by mouse clicks
+                //Prevents from adding invalid number when input is manipulated by user using mouse actions cut-copy-paste
                 if (input.val().match(constants.regExPatterns.phoneNumber) === null) {
                     $(event.currentTarget).remove();
                     return;
                 }
 
                 helpers.addPhoneNumber(input.val());
-                input.val("");
                 $(event.currentTarget).remove();
+                helpers.highlightItem();
+                $(".multiselector-input").focus();
             },
             deleteClickedSelection: function(event) {
                 helpers.deleteSelection($(event.currentTarget).text());
                 $(event.currentTarget).remove();
+                $(".multiselector-input").focus();
             },
             deleteSelection: function(text) {
                 for (var i = 0; i < multiSelector.selected.length; i++) {
@@ -303,8 +323,6 @@
                     resultsUl.append(helpers.createGroupElement(contacts, multiSelector.options.contactItemDisplayLimit, option)).find("ul");
                     resultsUl.append(helpers.createGroupElement(groups, multiSelector.options.groupItemDisplayLimit, option));
                     resultsUl.append(helpers.createGroupElement(smartgroups, multiSelector.options.smartgroupItemDisplayLimit, option));
-                } else if (!$(".multiselector-results").hasClass("hidden")) {
-                    $(".multiselector-results").addClass("hidden");
                 }
             },
             refreshList: function(text, forceGetAll) {
@@ -349,6 +367,30 @@
                     }
                 }
                 return selected;
+            },
+            hideResults: function() {
+                if ($(".multiselector-results").length) {
+                    $(".multiselector-results").addClass("hidden");
+                }
+            },
+            highlightItem: function(lastItem) {
+                var results = $(".multiselector-results").eq(0);
+                var index = (lastItem === true) ? -1 : 0;
+                var element = results.children().eq(index);
+
+                $(".highlight").removeClass("highlight");
+
+                if (element[0].nodeName === "UL") {
+                    if ($(".multiselector-list-item").length) {
+                        $(".multiselector-list-item").eq(index).addClass("highlight");
+                    } else if (lastItem && $(".add-phone-number").length) {
+                        $(".add-phone-number").addClass("highlight");
+                    } else if (!lastItem && $(".show-all-contacts").length) {
+                        $(".show-all-contacts").addClass("highlight");
+                    }
+                    return;
+                }
+                element.addClass("highlight");
             }
         };
 
@@ -408,29 +450,28 @@
             var selection = helpers.createSelectionList(input);
             var results = helpers.createResultsDiv();
 
-            var handleKeys = function(e) {
+            var handleKeyUp = function(e) {
                 var keyId = e.keyCode;
                 var text = input.val();
 
                 if (keyId === 13 || keyId === 188) {
                     // Enter/Return and comma
 
-                    input.val("");
                     if (text.search(",") >= 0) {
                         text = text.substring(0, text.search(","));
+                        input.val(text);
                     }
 
-                    if (!text.length) {
+                    if ((!text.length && !$(".highlight").length) || $(".multiselector-results").hasClass("hidden")) {
                         return;
                     }
 
-                    if ($(".multiselector-list-item").length) {
-                        $(".multiselector-list-item").eq(0).trigger("click");
-                    } else if (text.match(constants.regExPatterns.phoneNumber)) {
-                        helpers.addPhoneNumber(text);
+                    if ($(".highlight").length) {
+                        $(".highlight").eq(0).trigger("click");
+                        helpers.highlightItem();
                     }
+                    input.focus();
 
-                    multiSelector.previousText = "";
                     return;
                 } else if (keyId === 8) {
                     // Backspace
@@ -442,6 +483,11 @@
                         helpers.deleteSelection(selection.eq(-1).text());
                         selection.eq(-1).remove();
                     }
+                } else if (keyId === 9 || keyId === 27 || keyId === 35 ||
+                    keyId == 36 || keyId === 38 || keyId === 40) {
+                    //Escape, Tab, Home, End, Arrow Up and Down
+                    //Do nothing because they're handled on key down event
+                    return;
                 }
 
                 if (text !== multiSelector.previousText) {
@@ -452,6 +498,10 @@
                     var addNumberElement = $(document.createElement("div"))
                         .addClass("add-phone-number")
                         .click(helpers.addPhoneNumberEvent)
+                        .mouseenter(function(event) {
+                            $(".highlight").removeClass("highlight");
+                            $(event.currentTarget).addClass("highlight");
+                        })
                         .text(helpers.getMessage("common.item.add.number"));
 
                     $(".multiselector-results").prepend(addNumberElement);
@@ -459,10 +509,9 @@
                     $(".add-phone-number").eq(0).remove();
                 }
 
-                if (text.length > 0 && (multiSelector.results.length > 0 || text.match(constants.regExPatterns.phoneNumber) !== null)) {
+                if (text.length > 0  && results.hasClass('hidden')) {
                     results.removeClass('hidden');
-
-                } else {
+                } else if (!text.length) {
                     results.addClass('hidden');
                 }
 
@@ -470,7 +519,69 @@
                     helpers.createShowAllContacts();
                 }
 
+                if (text !== "") {
+                    helpers.highlightItem();
+                }
+
                 multiSelector.previousText = text;
+            };
+
+            var handleKeyDown = function(event) {
+                var keyId = event.keyCode;
+
+                if (keyId === 9 || keyId === 27) {
+                    //Tab or escape
+                    if (!$(".multiselector-results").hasClass("hidden")) {
+                        $(".multiselector-results").addClass("hidden");
+                    }
+                } else if (!$(".multiselector-results").hasClass("hidden")) {
+                    if (keyId === 36) {
+                        //Home
+                        helpers.highlightItem();
+                    } else if (keyId === 35) {
+                        //End
+                        helpers.highlightItem(true);
+                    } else if (keyId === 38 || keyId === 40) {
+                        //Arrow Up or Arrow Down
+                        var direction = (keyId === 38) ? -1 : 1;
+                        var index = (keyId === 38) ? 0 : -1;
+                        var orderBy = (keyId === 38) ? ["show-all-contacts", ".add-phone-number"] :
+                            ["add-phone-number", ".show-all-contacts"];
+
+                        if (!$(".highlight").length) {
+                            helpers.highlightItem(keyId === 40);
+                        } else {
+                            var currentHighlight = $(".highlight").eq(0);
+
+                            if (currentHighlight.hasClass("multiselector-list-item")) {
+                                var multiselectorList = $(".multiselector-list-item");
+                                if (multiselectorList.eq(index).text() === currentHighlight.text()) {
+                                    helpers.highlightItem(keyId === 40);
+                                    return;
+                                }
+
+                                var i;
+                                for (i = 0; i < multiselectorList.length; i++) {
+                                    if (multiselectorList.eq(i).text() === currentHighlight.text()) {
+                                        break;
+                                    }
+                                }
+                                multiselectorList.eq(i).removeClass("highlight");
+                                multiselectorList.eq(i + direction).addClass("highlight");
+                                return;
+                            } else if (currentHighlight.hasClass(orderBy[0])) {
+                                if ($(".multiselector-list-item").length) {
+                                    index = (index === 0) ? -1 : 0;
+                                    $(".highlight").removeClass("highlight");
+                                    $(".multiselector-list-item").eq(index).addClass("highlight");
+                                } else if ($(orderBy[1]).length) {
+                                    $(".highlight").removeClass("highlight");
+                                    $(orderBy[1]).addClass("highlight");
+                                }
+                            }
+                        }
+                    }
+                }
             };
 
             for (var i in multiSelector.selected) {
@@ -483,7 +594,8 @@
             currentElement.html(selection);
             selection.after(results);
             //Handling input
-            selection.keyup(handleKeys);
+            selection.keyup(handleKeyUp);
+            selection.keydown(handleKeyDown);
         };
         transformElement();
 
