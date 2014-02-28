@@ -6,7 +6,8 @@ $(document).ready(function() {
     var options = {
         contactItemDisplayLimit: 4,
         groupItemDisplayLimit: 1,
-        smartgroupItemDisplayLimit: 1
+        smartgroupItemDisplayLimit: 1,
+        objectAdded: function(id) { return "OK"; }
     };
     var translations = {
         "en_US": {

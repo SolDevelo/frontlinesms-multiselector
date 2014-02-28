@@ -249,23 +249,12 @@
                 }
             },
             addPhoneNumber: function(number, selected) {
-                if (!selected) {
-                    selected = multiSelector.selected;
-                }
-
-                for (var i in selected) {
-                    if (selected[i].name === number) {
-                        return;
-                    }
-                }
-
-                selected.push({
+                var numberObject = {
                     name: number,
                     id: number,
                     metadata: number
-                });
-                $(".multiselector-new-item").before($(helpers.createSelectedItem(number))
-                    .click(helpers.deleteClickedSelection));
+                };
+                helpers.addCustomContact(numberObject, selected);
             },
             addPhoneNumberEvent: function(event) {
                 var input = $(".multiselector-input");
@@ -391,6 +380,27 @@
                     return;
                 }
                 element.addClass("highlight");
+            },
+            addCustomContact: function(customContact, selected) {
+                if (!customContact || !customContact.hasOwnProperty("name") || !customContact.hasOwnProperty("id") ||
+                    !customContact.hasOwnProperty("metadata")) {
+                    return;
+                }
+                if (!selected) {
+                    selected = multiSelector.selected;
+                }
+
+                for (var i = 0; i < selected.length; i++) {
+                    if (selected[i].name === customContact.name) {
+                        return;
+                    }
+                }
+
+                selected.push(customContact);
+                var customContact = $(helpers.createSelectedItem(customContact.name))
+                    .click(helpers.deleteClickedSelection);
+                $(".multiselector-new-item").before(customContact);
+                return customContact;
             }
         };
 
@@ -414,10 +424,11 @@
 
         multiSelector.addObject = function(objectJson) {
             var newObject = JSON.parse(objectJson);
-
-            if (objectAdded === "function") {
-                objectAdded(newObject.id);
+            var addedObject = helpers.addCustomContact(newObject);
+            if (multiSelector.options.objectAdded === "function" && addedObject) {
+                multiSelector.options.objectAdded(newObject.id);
             }
+            return addedObject;
         };
 
         multiSelector.removeObject = function(objectId) {

@@ -121,6 +121,7 @@ $(document).ready(function() {
         equal($(".multiselector-selected-item").length, 4, "Check if number selection exist");
     });
 
+    //12
     test("Loading selected users by given array of ID", function() {
         var exampleIdArray = ["contact-7", "contact-69", "hello", "group-2", "smartgroup-1", "112", "+113"];
         var selected = helpers.getSelectionByIDs(exampleIdArray);
@@ -128,6 +129,18 @@ $(document).ready(function() {
         equal(selected.length, 3, "Check for size of returned array by getSelectionByIDs(...)");
         equal(ms.selected.length, 4, "Check for real size of selected array");
         equal($(".multiselector-selected-item").length, 4, "Check selection for being available for user")
+    });
+
+
+    //13
+    test("Testing global method addObject(...)", function() {
+        var newContact = ms.addObject("{\"name\": \"Darth Lech\",\"id\": \"contact-12345\",\"metadata\": \"+88230987654\"}");
+        var callbackResult = ms.options.objectAdded("contact-12345");
+
+        equal(newContact.text(), "Darth Lech", "Is addObject(...) working?");
+        equal(callbackResult, "OK");
+
+        newContact.click();
     });
 
     //Restore defualt value
