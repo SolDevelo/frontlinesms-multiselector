@@ -42,7 +42,7 @@ $(document).ready(function() {
         ms.results = contactService.getFilteredMatches("", 'i');
         var createdGroupElement = helpers.createGroupElement(helpers.getGroupingByName('Contacts'), 4);
 
-        equal(createdGroupElement.html(), "<span>Contacts</span><ul><li class=\"multiselector-list-item\">Alicia</li><li class=\"multiselector-list-item\">Dominic</li><li class=\"multiselector-list-item\">Emily</li><li class=\"multiselector-list-item\">Felix</li><li class=\"multiselector-item-limit-info\">Showing 4 out of 9 matches</li></ul>");
+        equal(createdGroupElement.html(), "<span>Contacts</span><ul><li class=\"multiselector-list-item\">Alicia</li><li class=\"multiselector-list-item\">Dominic</li><li class=\"multiselector-list-item\">Emily</li><li class=\"multiselector-list-item\">Felix</li><li class=\"multiselector-item-limit-info multiselector-list-item\">Showing 4 out of 9 matches</li></ul>");
         equal(createdGroupElement[0].nodeName, "LI", "Proper node used");
         notEqual(createdGroupElement.find("ul").html(), null, "List should be filled");
     });

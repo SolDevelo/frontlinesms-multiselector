@@ -21,6 +21,11 @@ li.multiselector-list-item.highlight, div.show-all-contacts.highlight, div.add-p
     cursor: pointer;
 }
 
+li.multiselector-item-limit-info.highlight {
+    background-color: #00E000;
+    cursor: pointer;
+}
+
 ul {
     list-style-type: none;
 }

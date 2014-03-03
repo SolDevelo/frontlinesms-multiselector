@@ -52,6 +52,14 @@
             }
         };
 
+        var properties = {
+            "showAll": {
+                "contacts": false,
+                "groups": false,
+                "smartgroups": false
+            }
+        }
+
         var helpers = {
             parseOptions: function(options, defaultOptions) {
                 if (!options) {
@@ -103,11 +111,11 @@
                 childElement.click(helpers.addSelectedItem);
                 return childElement;
             },
-            createGroupElement: function(group, limit, useLimit) {
-                if (useLimit === undefined) {
-                    useLimit = true;
+            createGroupElement: function(group, limit, showAll) {
+                if (showAll === undefined) {
+                    showAll = false;
                 }
-                if (group === undefined || group === null || limit < 1) {
+                if (group === undefined || group === null || limit < 0) {
                     return null;
                 }
 
@@ -123,7 +131,7 @@
 
                 var i;
 
-                if (!useLimit) {
+                if (showAll) {
                     for (i = 0; i < group.members.length; i++) {
                         groupElement.append(helpers.createGroupChildElement(group, group.members[i]));
                     }
@@ -156,9 +164,6 @@
             createSelectedItem: function(text) {
                 return $(document.createElement("li"))
                     .addClass('multiselector-selected-item')
-                    .hover(function() {
-                        $(this).toggleClass('hover');
-                    })
                     .text(text);
             },
             createResultsDiv: function() {
@@ -180,6 +185,12 @@
 
                 return $(document.createElement("li"))
                     .addClass("multiselector-item-limit-info")
+                    .addClass("multiselector-list-item")
+                    .mouseenter(function(event) {
+                        $(".highlight").removeClass("highlight");
+                        $(event.currentTarget).addClass("highlight");
+                    })
+                    .click(helpers.extendSingleGrouping)
                     .text(message);
             },
             createShowAllContacts: function() {
@@ -189,7 +200,10 @@
                         .addClass("show-all-contacts")
                         .text(message)
                         .click(function(event) {
-                            helpers.refreshList("", true);
+                            properties.showAll.contacts = true;
+                            properties.showAll.groups = true;
+                            properties.showAll.smartgroups = true;
+                            helpers.refreshList("");
                             $(event.currentTarget).remove();
                             helpers.highlightItem();
                             $(".multiselector-input").focus();
@@ -239,7 +253,7 @@
                             if ($(".show-all-contacts").length) {
                                 helpers.refreshList($(".multiselector-input").val());
                             } else {
-                                helpers.refreshList("", true);
+                                helpers.refreshList("");
                             }
                             helpers.highlightItem();
                             $(".multiselector-input").focus();
@@ -283,7 +297,7 @@
                             if ($(".show-all-contacts").length) {
                                 helpers.refreshList($(".multiselector-input").val());
                             } else {
-                                helpers.refreshList("", true);
+                                helpers.refreshList("");
                             }
                         }
                         return;
@@ -300,27 +314,23 @@
                 }
                 return selectedID.toString();
             },
-            populateList: function(option) {
-                if (option === undefined) {
-                    option = true;
-                }
+            populateList: function() {
                 if (multiSelector.results.length) {
                     var contacts = helpers.getGroupingByName(constants.groupingNames.contacts);
                     var groups = helpers.getGroupingByName(constants.groupingNames.groups);
                     var smartgroups = helpers.getGroupingByName(constants.groupingNames.smartgroups);
                     var resultsUl = $(".multiselector-results").find("ul");
-                    resultsUl.append(helpers.createGroupElement(contacts, multiSelector.options.contactItemDisplayLimit, option)).find("ul");
-                    resultsUl.append(helpers.createGroupElement(groups, multiSelector.options.groupItemDisplayLimit, option));
-                    resultsUl.append(helpers.createGroupElement(smartgroups, multiSelector.options.smartgroupItemDisplayLimit, option));
+
+                    resultsUl.append(helpers.createGroupElement(contacts, multiSelector.options.contactItemDisplayLimit, properties.showAll.contacts)).find("ul");
+                    resultsUl.append(helpers.createGroupElement(groups, multiSelector.options.groupItemDisplayLimit, properties.showAll.groups));
+                    resultsUl.append(helpers.createGroupElement(smartgroups, multiSelector.options.smartgroupItemDisplayLimit, properties.showAll.smartgroups));
                 }
             },
-            refreshList: function(text, forceGetAll) {
+            refreshList: function(text) {
                 helpers.clearList();
-                if (text.length > 0 || forceGetAll === true) {
-                    multiSelector.results =
-                        contactService.getFilteredMatches(helpers.getSelectedIDs(), text);
-                }
-                helpers.populateList(!forceGetAll);
+                multiSelector.results =
+                    contactService.getFilteredMatches(helpers.getSelectedIDs(), text);
+                helpers.populateList();
             },
             getSelectionByIDs: function(IDs, fillList) {
                 var selected = [];
@@ -361,6 +371,25 @@
                 if ($(".multiselector-results").length) {
                     $(".multiselector-results").addClass("hidden");
                 }
+            },
+            extendSingleGrouping: function(listElement) {
+                if (listElement.hasOwnProperty("currentTarget")) {
+                    listElement = $(listElement.currentTarget);
+                    $(".multiselector-input").focus();
+                }
+
+                var parentName = listElement.parents().find("span").eq(0).text();
+
+                if(parentName === constants.groupingNames.contacts) {
+                    properties.showAll.contacts = true;
+                } else if(parentName === constants.groupingNames.groups) {
+                    properties.showAll.groups = true;
+                } else if(parentName === constants.groupingNames.smartgroups) {
+                    properties.showAll.smartgroups = true;
+                }
+
+                helpers.refreshList($(".multiselector-input").val());
+                helpers.highlightItem();
             },
             highlightItem: function(lastItem) {
                 var results = $(".multiselector-results").eq(0);
@@ -483,6 +512,7 @@
                     }
                     input.focus();
 
+                    multiSelector.previousText = "";
                     return;
                 } else if (keyId === 8) {
                     // Backspace
@@ -502,6 +532,9 @@
                 }
 
                 if (text !== multiSelector.previousText) {
+                    properties.showAll.contacts = false;
+                    properties.showAll.groups = false;
+                    properties.showAll.smartgroups = false;
                     helpers.refreshList(text);
                 }
 
@@ -542,6 +575,7 @@
 
                 if (keyId === 9 || keyId === 27) {
                     //Tab or escape
+                    $(".multiselector-input").val("");
                     if (!$(".multiselector-results").hasClass("hidden")) {
                         $(".multiselector-results").addClass("hidden");
                     }
