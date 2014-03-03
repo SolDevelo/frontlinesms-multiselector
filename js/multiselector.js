@@ -60,6 +60,24 @@
             }
         }
 
+        var multiSelector = {
+            version: "0.3-SNAPSHOT",
+            targetElement: currentElement,
+            options: {},
+            selected: {},
+            results: {},
+            previousText: "",
+            defaultTranslations: {
+                "en_US": {
+                    "common.item.limit.label": "Showing %s out of %s matches",
+                    "common.item.show.all": "Show all contacts",
+                    "common.group.select.disabled": "This group is disabled and you can not select it.",
+                    "common.item.add.number": "Add this phone number"
+                }
+            },
+            translations: (translations === undefined) ? null : translations
+        };
+
         var helpers = {
             parseOptions: function(options, defaultOptions) {
                 if (!options) {
@@ -246,6 +264,7 @@
                 for (var i = multiSelector.results.length - 1; i >= 0; i--) {
                     for (var j = 0; j < multiSelector.results[i].members.length; j++) {
                         if (multiSelector.results[i].members[j].name === $(event.currentTarget).text()) {
+                            var objectId = multiSelector.results[i].members[j].id;
                             multiSelector.selected.push(multiSelector.results[i].members[j]);
                             multiSelector.results[i].members.splice(j, 1);
 
@@ -257,6 +276,7 @@
                             }
                             helpers.highlightItem();
                             $(".multiselector-input").focus();
+                            multiSelector.options.objectAdded(objectId);
                             return;
                         }
                     }
@@ -268,7 +288,9 @@
                     id: number,
                     metadata: number
                 };
-                helpers.addCustomContact(numberObject, selected);
+                if (helpers.addCustomContact(numberObject, selected)) {
+                    multiSelector.options.objectAdded(numberObject.id);
+                }
             },
             addPhoneNumberEvent: function(event) {
                 var input = $(".multiselector-input");
@@ -433,23 +455,8 @@
             }
         };
 
-        var multiSelector = {
-            version: "0.3-SNAPSHOT",
-            targetElement: currentElement,
-            options: helpers.parseOptions(options, defaultOptions),
-            selected: helpers.getSelectionByIDs(defaultSelection, true),
-            results: {},
-            previousText: "",
-            defaultTranslations: {
-                "en_US": {
-                    "common.item.limit.label": "Showing %s out of %s matches",
-                    "common.item.show.all": "Show all contacts",
-                    "common.group.select.disabled": "This group is disabled and you can not select it.",
-                    "common.item.add.number": "Add this phone number"
-                }
-            },
-            translations: (translations === undefined) ? null : translations
-        };
+        multiSelector.options = helpers.parseOptions(options, defaultOptions);
+        multiSelector.selected = helpers.getSelectionByIDs(defaultSelection, true);
 
         multiSelector.addObject = function(objectJson) {
             var newObject = JSON.parse(objectJson);

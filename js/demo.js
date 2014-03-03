@@ -7,7 +7,7 @@ $(document).ready(function() {
         contactItemDisplayLimit: 4,
         groupItemDisplayLimit: 1,
         smartgroupItemDisplayLimit: 1,
-        objectAdded: function(id) { return "OK"; }
+        objectAdded: function(id) { return id; }
     };
     var translations = {
         "en_US": {
