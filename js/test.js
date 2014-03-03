@@ -138,7 +138,7 @@ $(document).ready(function() {
         var callbackResult = ms.options.objectAdded("contact-12345");
 
         equal(newContact.text(), "Darth Lech", "Is addObject(...) working?");
-        equal(callbackResult, "OK");
+        equal(callbackResult, "contact-12345");
 
         newContact.click();
     });
