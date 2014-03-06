@@ -26,6 +26,15 @@ li.multiselector-item-limit-info.highlight {
     cursor: pointer;
 }
 
+span.multiselector-list-item-name {
+}
+
+span.multiselector-list-item-metadata {
+    float: right;
+    color: gray;
+    padding-right: 10px;
+}
+
 ul {
     list-style-type: none;
 }

@@ -34,7 +34,7 @@ $(document).ready(function() {
     //4
     test("createGroupChildElement(\"42\", {name: \"John Doe\", id: \"contact-700\", metadata: \"+123456789\"})", function() {
         equal(helpers.createGroupChildElement("42", {name: "John Doe", id: "contact-700", metadata: "+123456789"})[0].nodeName, "LI", "Proper node used");
-        equal(helpers.createGroupChildElement("42", {name: "John Doe", id: "contact-700", metadata: "+123456789"}).text(), "John Doe", "Proper element value");
+        equal(helpers.createGroupChildElement("42", {name: "John Doe", id: "contact-700", metadata: "+123456789"}).text(), "John Doe+123456789", "Proper element value");
     });
 
     //5
@@ -42,7 +42,7 @@ $(document).ready(function() {
         ms.results = contactService.getFilteredMatches("", 'i');
         var createdGroupElement = helpers.createGroupElement(helpers.getGroupingByName('Contacts'), 4);
 
-        equal(createdGroupElement.html(), "<span>Contacts</span><ul><li class=\"multiselector-list-item\">Alicia</li><li class=\"multiselector-list-item\">Dominic</li><li class=\"multiselector-list-item\">Emily</li><li class=\"multiselector-list-item\">Felix</li><li class=\"multiselector-item-limit-info multiselector-list-item\">Showing 4 out of 9 matches</li></ul>");
+        equal(createdGroupElement.html(), "<span>Contacts</span><ul><li class=\"multiselector-list-item\"><span class=\"multiselector-list-item-name\">Alicia</span><span class=\"multiselector-list-item-metadata\">+447943419787</span></li><li class=\"multiselector-list-item\"><span class=\"multiselector-list-item-name\">Dominic</span><span class=\"multiselector-list-item-metadata\">+4471224253</span></li><li class=\"multiselector-list-item\"><span class=\"multiselector-list-item-name\">Emily</span><span class=\"multiselector-list-item-metadata\">+12352351234</span></li><li class=\"multiselector-list-item\"><span class=\"multiselector-list-item-name\">Felix</span><span class=\"multiselector-list-item-metadata\">+2546283042</span></li><li class=\"multiselector-item-limit-info multiselector-list-item\">Showing 4 out of 9 matches</li></ul>");
         equal(createdGroupElement[0].nodeName, "LI", "Proper node used");
         notEqual(createdGroupElement.find("ul").html(), null, "List should be filled");
     });

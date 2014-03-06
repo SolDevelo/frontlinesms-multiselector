@@ -112,13 +112,20 @@
                     return null;
                 }
 
+                var itemNameElement = $(document.createElement("span"))
+                    .addClass("multiselector-list-item-name")
+                    .text(child.name);
+                var itemMetadataElement = $(document.createElement("span"))
+                    .addClass("multiselector-list-item-metadata")
+                    .text(child.metadata)
                 var childElement = $(document.createElement("li"))
                     .addClass("multiselector-list-item")
                     .mouseenter(function(event) {
                         $(".highlight").removeClass("highlight");
                         $(event.currentTarget).addClass("highlight");
                     })
-                    .text(child.name);
+                    .append(itemNameElement)
+                    .append(itemMetadataElement);
 
                 if (child.disabled !== undefined && child.disabled === true) {
                     childElement.addClass("disabled");
@@ -251,19 +258,19 @@
 
                 if (existingSelection !== undefined) {
                     for (var i = 0; i < existingSelection.length; i++) {
-                        if (existingSelection.eq(i).text() === $(event.currentTarget).text()) {
+                        if (existingSelection.eq(i).text() === $(event.currentTarget).find(".multiselector-list-item-name").text()) {
                             return;
                         }
                     }
                 }
 
-                var item = $(helpers.createSelectedItem($(event.currentTarget).text()))
+                var item = $(helpers.createSelectedItem($(event.currentTarget).find(".multiselector-list-item-name").text()))
                     .click(helpers.deleteClickedSelection);
                 $(".multiselector-new-item").before(item);
 
                 for (var i = multiSelector.results.length - 1; i >= 0; i--) {
                     for (var j = 0; j < multiSelector.results[i].members.length; j++) {
-                        if (multiSelector.results[i].members[j].name === $(event.currentTarget).text()) {
+                        if (multiSelector.results[i].members[j].name === $(event.currentTarget).find(".multiselector-list-item-name").text()) {
                             var objectId = multiSelector.results[i].members[j].id;
                             multiSelector.selected.push(multiSelector.results[i].members[j]);
                             multiSelector.results[i].members.splice(j, 1);
@@ -400,7 +407,7 @@
                     $(".multiselector-input").focus();
                 }
 
-                var parentName = listElement.parents().find("span").eq(0).text();
+                var parentName = listElement.parents("li").find("span").eq(0).text();
 
                 if(parentName === constants.groupingNames.contacts) {
                     properties.showAll.contacts = true;
