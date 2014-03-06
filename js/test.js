@@ -131,16 +131,13 @@ $(document).ready(function() {
         equal($(".multiselector-selected-item").length, 4, "Check selection for being available for user")
     });
 
-
     //13
     test("Testing global method addObject(...)", function() {
-        var newContact = ms.addObject("{\"name\": \"Darth Lech\",\"id\": \"contact-12345\",\"metadata\": \"+88230987654\"}");
-        var callbackResult = ms.options.objectAdded("contact-12345");
+        var isAdded = ms.addObject("contact-11");
+        var callbackResult = ms.options.objectAdded("contact-11");
 
-        equal(newContact.text(), "Darth Lech", "Is addObject(...) working?");
-        equal(callbackResult, "contact-12345");
-
-        newContact.click();
+        equal(isAdded, true, "Is addObject(...) working?");
+        equal(callbackResult, "contact-11");
     });
 
     //Restore defualt value

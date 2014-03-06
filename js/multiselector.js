@@ -186,9 +186,10 @@
 
                 return selectionElement.append(li);
             },
-            createSelectedItem: function(text) {
+            createSelectedItem: function(text, customClass) {
                 return $(document.createElement("li"))
                     .addClass('multiselector-selected-item')
+                    .addClass(customClass)
                     .text(text);
             },
             createResultsDiv: function() {
@@ -264,7 +265,8 @@
                     }
                 }
 
-                var item = $(helpers.createSelectedItem($(event.currentTarget).find(".multiselector-list-item-name").text()))
+                var customClass = $(event.currentTarget).parents("li").eq(0).attr("class");
+                var item = $(helpers.createSelectedItem($(event.currentTarget).find(".multiselector-list-item-name").text(), customClass))
                     .click(helpers.deleteClickedSelection);
                 $(".multiselector-new-item").before(item);
 
@@ -295,7 +297,7 @@
                     id: number,
                     metadata: number
                 };
-                if (helpers.addCustomContact(numberObject, selected)) {
+                if (helpers.addCustomContact(numberObject, selected, "phone-number")) {
                     multiSelector.options.objectAdded(numberObject.id);
                 }
             },
@@ -373,6 +375,7 @@
                                 var found = false;
                                 for (var m in contactBase[g].members) {
                                     if (IDs[i] === contactBase[g].members[m].id) {
+                                        contactBase[g].members[m].customCssClass = contactBase[g].customCssClass;
                                         selected.push(contactBase[g].members[m]);
                                         found = true;
                                         isAddedToSelection[i] = true;
@@ -439,7 +442,7 @@
                 }
                 element.addClass("highlight");
             },
-            addCustomContact: function(customContact, selected) {
+            addCustomContact: function(customContact, selected, customCssClass) {
                 if (!customContact || !customContact.hasOwnProperty("name") || !customContact.hasOwnProperty("id") ||
                     !customContact.hasOwnProperty("metadata")) {
                     return;
@@ -453,9 +456,9 @@
                         return;
                     }
                 }
-
+                customContact.customCssClass = customCssClass;
                 selected.push(customContact);
-                var customContact = $(helpers.createSelectedItem(customContact.name))
+                var customContact = $(helpers.createSelectedItem(customContact.name, customCssClass))
                     .click(helpers.deleteClickedSelection);
                 $(".multiselector-new-item").before(customContact);
                 return customContact;
@@ -465,13 +468,32 @@
         multiSelector.options = helpers.parseOptions(options, defaultOptions);
         multiSelector.selected = helpers.getSelectionByIDs(defaultSelection, true);
 
-        multiSelector.addObject = function(objectJson) {
-            var newObject = JSON.parse(objectJson);
-            var addedObject = helpers.addCustomContact(newObject);
-            if (multiSelector.options.objectAdded === "function" && addedObject) {
-                multiSelector.options.objectAdded(newObject.id);
+        multiSelector.addObject = function(objectId) {
+            var added = false;
+            var results = contactService.getFilteredMatches(helpers.getSelectedIDs(), "");
+            // for each grouping
+            for (var i = 0; i < results.length && !added; i++) {
+                for (var m = 0; m < results[i].members.length; m++) {
+                    var id = results[i].members[m].id;
+                    if (id === objectId) {
+                        var contact = results[i].members[m];
+                        contact.customCssClass = results[i].customCssClass;
+                        helpers.addCustomContact(contact);
+
+                        added = true;
+                    }
+                }
             }
-            return addedObject;
+            if (!added && objectId.match(constants.regExPatterns.phoneNumber)) {
+                helpers.addPhoneNumber(objectId, this.selected);
+                added = true;
+            }
+
+            if (added && this.options.objectAdded === "function") {
+                this.options.objectAdded(objectId);
+            }
+
+            return added;
         };
 
         multiSelector.removeObject = function(objectId) {
@@ -644,7 +666,7 @@
             };
 
             for (var i in multiSelector.selected) {
-                var selectedItem = helpers.createSelectedItem(multiSelector.selected[i].name)
+                var selectedItem = helpers.createSelectedItem(multiSelector.selected[i].name, multiSelector.selected[i].customCssClass)
                     .click(helpers.deleteClickedSelection);
 
                 selection.find("li").eq(-1).before(selectedItem);
