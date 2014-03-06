@@ -56,7 +56,8 @@
             "showAll": {
                 "contacts": false,
                 "groups": false,
-                "smartgroups": false
+                "smartgroups": false,
+                "selected": false
             }
         }
 
@@ -71,6 +72,7 @@
                 "en_US": {
                     "common.item.limit.label": "Showing %s out of %s matches",
                     "common.item.show.all": "Show all contacts",
+                    "common.item.show.all.button": "Show all",
                     "common.group.select.disabled": "This group is disabled and you can not select it.",
                     "common.item.add.number": "Add this phone number"
                 }
@@ -126,6 +128,9 @@
                     })
                     .append(itemNameElement)
                     .append(itemMetadataElement);
+                if($.inArray(child.id, helpers.getSelectedIDs().split(",")) !== -1) {
+                    childElement.addClass("selected");
+                }
 
                 if (child.disabled !== undefined && child.disabled === true) {
                     childElement.addClass("disabled");
@@ -175,14 +180,21 @@
                 return $(document.createElement("input"))
                     .addClass("multiselector-input");
             },
-            createSelectionList: function(input) {
+            createShowAllButton: function() {
+                var message = helpers.getMessage("common.item.show.all.button");
+                return $(document.createElement("span"))
+                    .addClass("multiselector-show-all-button")
+                    .text(message)
+                    .click(helpers.showAllContacts);
+            },
+            createSelectionList: function(input, showAllButton) {
                 var selectionElement = $(document.createElement("ul"))
                     .addClass("multiselector-selection")
                     .width(multiSelector.options.width);
                 var li = $(document.createElement("li"))
                     .addClass("multiselector-new-item");
-
                 li.append(input);
+                li.append(showAllButton);
 
                 return selectionElement.append(li);
             },
@@ -229,6 +241,7 @@
                             properties.showAll.contacts = true;
                             properties.showAll.groups = true;
                             properties.showAll.smartgroups = true;
+                            properties.showAll.selected = true;
                             helpers.refreshList("");
                             $(event.currentTarget).remove();
                             helpers.highlightItem();
@@ -357,10 +370,26 @@
                     resultsUl.append(helpers.createGroupElement(smartgroups, multiSelector.options.smartgroupItemDisplayLimit, properties.showAll.smartgroups));
                 }
             },
+            showAllContacts: function() {
+                properties.showAll.contacts = true;
+                properties.showAll.groups = true;
+                properties.showAll.smartgroups = true;
+                if (!$(".multiselector-results").hasClass("hidden")) {
+                    $(".multiselector-results").addClass("hidden");
+                } else {
+                    properties.showAll.selected = true;
+                    helpers.refreshList("");
+                    $(".multiselector-results").removeClass("hidden");
+                }
+            },
             refreshList: function(text) {
                 helpers.clearList();
-                multiSelector.results =
-                    contactService.getFilteredMatches(helpers.getSelectedIDs(), text);
+                if(properties.showAll.selected) {
+                    multiSelector.results = contactService.getAll();
+                } else {
+                    multiSelector.results =
+                        contactService.getFilteredMatches(helpers.getSelectedIDs(), text);
+                }
                 helpers.populateList();
             },
             getSelectionByIDs: function(IDs, fillList) {
@@ -523,7 +552,8 @@
         var transformElement = function() {
 
             var input = helpers.createInput();
-            var selection = helpers.createSelectionList(input);
+            var showAllButton = helpers.createShowAllButton();
+            var selection = helpers.createSelectionList(input, showAllButton);
             var results = helpers.createResultsDiv();
 
             var handleKeyUp = function(e) {
@@ -571,6 +601,7 @@
                     properties.showAll.contacts = false;
                     properties.showAll.groups = false;
                     properties.showAll.smartgroups = false;
+                    properties.showAll.selected = false;
                     helpers.refreshList(text);
                 }
 

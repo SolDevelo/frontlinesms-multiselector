@@ -35,6 +35,14 @@ span.multiselector-list-item-metadata {
     padding-right: 10px;
 }
 
+li.multiselector-list-item.selected {
+    color: green;
+}
+
+li.multiselector-list-item.disabled {
+    color: gray;
+}
+
 ul {
     list-style-type: none;
 }
