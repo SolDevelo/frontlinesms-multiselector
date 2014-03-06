@@ -606,16 +606,6 @@
 
                     multiSelector.previousText = "";
                     return;
-                } else if (keyId === 8) {
-                    // Backspace
-                    var selection = $(".multiselector-selected-item");
-
-                    if (selection.length > 0 && text.length === 0 &&
-                        multiSelector.previousText.length === 0) {
-
-                        helpers.deleteSelection(selection.eq(-1).text());
-                        selection.eq(-1).remove();
-                    }
                 } else if (keyId === 9 || keyId === 27 || keyId === 35 ||
                     keyId == 36 || keyId === 38 || keyId === 40) {
                     //Escape, Tab, Home, End, Arrow Up and Down
@@ -683,7 +673,45 @@
                         $(".multiselector-results").addClass("hidden");
                         $(".show-all").removeClass("btn-primary");
                     }
-                } else if (!$(".multiselector-results").hasClass("hidden")) {
+                } else if ($(".multiselector-results").hasClass("hidden")) {
+                    if (keyId == 37 || keyId == 39) {
+                        //Arrow Left or Arrow Right
+                        var direction = (keyId === 37) ? 0 : 1;
+                        var focused = $(document.activeElement);
+                        var selection = $(".multiselector-selected-item.selected");
+                        if (selection.length > 0) {
+                            if(direction) {
+                                selection.removeClass("selected");
+                                if(selection.next().length > 0) {
+                                    selection.next().addClass("selected");
+                                }
+                            } else if (selection.prev().length > 0) {
+                                selection.removeClass("selected");
+                                selection.prev().addClass("selected");
+                            }
+                        } else if(focused.attr("class").contains("multiselector-input") && !direction) {
+                            $(".multiselector-selected-item:last").addClass("selected")
+                        }
+                    } else if (keyId == 46) {
+                        //Delete
+                        var selection = $(".multiselector-selected-item.selected");
+                        if (selection.length > 0) {
+                            if (selection.prev().length > 0) {
+                                selection.prev().addClass("selected");
+                            } else if (selection.next().length > 0) {
+                                selection.next().addClass("selected");
+                            }
+                            selection.click();
+                        }
+                    } else if (keyId === 8) {
+                        //Backspace
+                        var selectionPrev = $(".multiselector-selected-item.selected").prev();
+
+                        if (selectionPrev.length > 0) {
+                            selectionPrev.click();
+                        }
+                    }
+                } else {
                     if (keyId === 36) {
                         //Home
                         helpers.highlightItem();

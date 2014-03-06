@@ -57,6 +57,10 @@ button.show-all.active {
     background-color: #428BCA;
 }
 
+li.multiselector-selected-item.selected {
+    color: green;
+}
+
 .hidden {
     display: none;
 }
