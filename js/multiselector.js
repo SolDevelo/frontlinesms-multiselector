@@ -228,7 +228,7 @@
                     .addClass("hidden")
                     .attr("role", "menu")
                     .width(multiSelector.options.width)
-                    .height(multiSelector.options.minResultsHeight)
+                    .height(multiSelector.options.minResultsHeight);
             },
             clearList: function() {
                 multiSelector.results.length = 0;
