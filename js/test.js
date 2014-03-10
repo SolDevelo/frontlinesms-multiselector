@@ -33,7 +33,7 @@ $(document).ready(function() {
 
     //4
     test("createGroupChildElement(\"42\", {name: \"John Doe\", id: \"contact-700\", metadata: \"+123456789\"})", function() {
-        equal(helpers.createGroupChildElement("42", {name: "John Doe", id: "contact-700", metadata: "+123456789"})[0].nodeName, "LI", "Proper node used");
+        equal(helpers.createGroupChildElement("42", {name: "John Doe", id: "contact-700", metadata: "+123456789"})[0].nodeName, "A", "Proper node used");
         equal(helpers.createGroupChildElement("42", {name: "John Doe", id: "contact-700", metadata: "+123456789"}).text(), "John Doe+123456789", "Proper element value");
     });
 
@@ -42,15 +42,15 @@ $(document).ready(function() {
         ms.results = contactService.getFilteredMatches("", 'i');
         var createdGroupElement = helpers.createGroupElement(helpers.getGroupingByName('Contacts'), 4);
 
-        equal(createdGroupElement.html(), "<span>Contacts</span><ul><li class=\"multiselector-list-item\"><span class=\"multiselector-list-item-name\">Alicia</span><span class=\"multiselector-list-item-metadata\">+447943419787</span></li><li class=\"multiselector-list-item\"><span class=\"multiselector-list-item-name\">Dominic</span><span class=\"multiselector-list-item-metadata\">+4471224253</span></li><li class=\"multiselector-list-item\"><span class=\"multiselector-list-item-name\">Emily</span><span class=\"multiselector-list-item-metadata\">+12352351234</span></li><li class=\"multiselector-list-item selected\"><span class=\"multiselector-list-item-name\">Felix</span><span class=\"multiselector-list-item-metadata\">+2546283042</span></li><li class=\"multiselector-item-limit-info multiselector-list-item\">Showing 4 out of 9 matches</li></ul>");
+        equal(createdGroupElement.find("a").attr("role"), "menuitem");
         equal(createdGroupElement[0].nodeName, "LI", "Proper node used");
-        notEqual(createdGroupElement.find("ul").html(), null, "List should be filled");
+        notEqual(createdGroupElement.find("li").html(), null, "List should be filled");
     });
 
     //6
     test("clearList()", function() {
         helpers.clearList();
-        equal($(".multiselector-results").html(), "<ul></ul>", "Test clearing matches list");
+        equal($(".multiselector-results").html(), "", "Test clearing matches list");
     });
 
     //7
@@ -75,7 +75,7 @@ $(document).ready(function() {
     //8
     test("createSelectionList(\"x\")", function() {
         var selectionList = helpers.createSelectionList("x");
-        equal(selectionList.html(), "<li class=\"multiselector-new-item\">x</li>", "Proper class member and value");
+        equal(selectionList.html(), "<div class=\"input-group\">x<div class=\"input-group-btn\"></div></div>", "Proper class member and value");
         equal(selectionList[0].nodeName, "UL", "Proper node used");
     });
 
@@ -97,7 +97,7 @@ $(document).ready(function() {
         keyEvent.which = 65;
         input.trigger(keyEvent);
 
-        equal($(".multiselector-list-item").length, 1, "One element found for \"alicia\"");
+        equal($(".multiselector-list-item").length, 2, "One element found for \"alicia\"");
         $(".multiselector-list-item").trigger("click");
         equal($(".multiselector-selected-item").length, 5, "One element selected");
         equal(ms.selected.length, 5, "Check is it go to selected array");
@@ -133,11 +133,11 @@ $(document).ready(function() {
 
     //13
     test("Testing global method addObject(...)", function() {
-        var isAdded = ms.addObject("contact-11");
-        var callbackResult = ms.options.objectAdded("contact-11");
+        var isAdded = ms.addObject("contact-4");
+        var callbackResult = ms.options.objectAdded("contact-4");
 
         equal(isAdded, true, "Is addObject(...) working?");
-        equal(callbackResult, "contact-11");
+        equal(callbackResult, "contact-4");
     });
 
     //Restore defualt value

@@ -31,7 +31,7 @@
         // assigning it to a variable for use in inline functions
         var currentElement = this;
         var defaultOptions = {
-            width: 500,
+            width: 600,
             minResultsHeight: 300,
             contactItemDisplayLimit: 15,
             groupItemDisplayLimit: 5,
@@ -71,8 +71,10 @@
             defaultTranslations: {
                 "en_US": {
                     "common.item.limit.label": "Showing %s out of %s matches",
+                    "common.item.selected": "Selected",
                     "common.item.show.all": "Show all contacts",
                     "common.item.show.all.button": "Show all",
+                    "common.item.select.selected": "This item is already selected.",
                     "common.group.select.disabled": "This group is disabled and you can not select it.",
                     "common.item.add.number": "Add this phone number"
                 }
@@ -120,16 +122,20 @@
                 var itemMetadataElement = $(document.createElement("span"))
                     .addClass("multiselector-list-item-metadata")
                     .text(child.metadata)
-                var childElement = $(document.createElement("li"))
+                var childElement = $(document.createElement("a"))
                     .addClass("multiselector-list-item")
+                    .attr("href", "#")
+                    .attr("role", "menuitem")
                     .mouseenter(function(event) {
                         $(".highlight").removeClass("highlight");
                         $(event.currentTarget).addClass("highlight");
                     })
                     .append(itemNameElement)
-                    .append(itemMetadataElement);
+                    .append(itemMetadataElement)
                 if($.inArray(child.id, helpers.getSelectedIDs().split(",")) !== -1) {
-                    childElement.addClass("selected");
+                    childElement.addClass("selected");;
+                    itemMetadataElement.text(helpers.getMessage("common.item.selected"));
+                    childElement.attr("title", helpers.getMessage("common.item.select.selected"));
                 }
 
                 if (child.disabled !== undefined && child.disabled === true) {
@@ -149,11 +155,13 @@
                     return null;
                 }
 
-                var groupElement = $(document.createElement("ul"));
-                var groupNameElement = $(document.createElement("span")).text(group.displayName);
+                var groupNameElement = $(document.createElement("span"))
+                    .text(group.displayName)
+                    .addClass("dropdown-header");
+                var divider = $(document.createElement("li"))
+                    .addClass("divider");
                 var listItem = $(document.createElement("li"))
-                    .append(groupNameElement)
-                    .append(groupElement);
+                    .append(groupNameElement);
 
                 if (group.customCssClass !== undefined) {
                     listItem.addClass(group.customCssClass);
@@ -163,40 +171,48 @@
 
                 if (showAll) {
                     for (i = 0; i < group.members.length; i++) {
-                        groupElement.append(helpers.createGroupChildElement(group, group.members[i]));
+                        listItem.append(helpers.createGroupChildElement(group, group.members[i]));
                     }
                 } else {
                     for (i = 0; i < group.members.length && i < limit; i++) {
-                        groupElement.append(helpers.createGroupChildElement(group, group.members[i]));
+                        listItem.append(helpers.createGroupChildElement(group, group.members[i]));
                     }
                     if (i === limit && group.members.length !== i) {
-                        groupElement.append(helpers.createItemLimitInfoElement(i, group.members.length));
+                        listItem.append(helpers.createItemLimitInfoElement(i, group.members.length));
                     }
                 }
+                listItem.append(divider);
 
                 return listItem;
             },
             createInput: function() {
                 return $(document.createElement("input"))
-                    .addClass("multiselector-input");
+                    .addClass("multiselector-input form-control");
             },
             createShowAllButton: function() {
                 var message = helpers.getMessage("common.item.show.all.button");
-                return $(document.createElement("span"))
-                    .addClass("multiselector-show-all-button")
+                var span = $(document.createElement("span"))
+                    .addClass("caret");
+
+                return $(document.createElement("button"))
+                    .addClass("btn btn-default show-all")
                     .text(message)
-                    .click(helpers.showAllContacts);
+                    .append(span)
+                    .click(helpers.showAllContacts)
             },
             createSelectionList: function(input, showAllButton) {
                 var selectionElement = $(document.createElement("ul"))
                     .addClass("multiselector-selection")
                     .width(multiSelector.options.width);
-                var li = $(document.createElement("li"))
-                    .addClass("multiselector-new-item");
-                li.append(input);
-                li.append(showAllButton);
+                var inputGroupButton = $(document.createElement("div"))
+                    .addClass("input-group-btn")
+                    .append(showAllButton)
+                var inputGroup = $(document.createElement("div"))
+                    .addClass("input-group");
+                inputGroup.append(input);
+                inputGroup.append(inputGroupButton);
 
-                return selectionElement.append(li);
+                return selectionElement.append(inputGroup);
             },
             createSelectedItem: function(text, customClass) {
                 return $(document.createElement("li"))
@@ -205,23 +221,27 @@
                     .text(text);
             },
             createResultsDiv: function() {
-                var ul = document.createElement("ul");
-
-                return $(document.createElement("div"))
+                return $(document.createElement("ul"))
                     .addClass("multiselector-results")
+                    .addClass("dropdown-menu")
+                    .addClass("dropdown-toggle")
                     .addClass("hidden")
+                    .attr("role", "menu")
                     .width(multiSelector.options.width)
                     .height(multiSelector.options.minResultsHeight)
-                    .append(ul);
             },
             clearList: function() {
                 multiSelector.results.length = 0;
-                $(".multiselector-results").find("ul").empty();
+                $(".multiselector-results").empty();
             },
             createItemLimitInfoElement: function(count, max) {
                 var message = sprintf(helpers.getMessage("common.item.limit.label") ,count, max);
-
-                return $(document.createElement("li"))
+                var span = $(document.createElement("span"))
+                    .addClass("text-info")
+                    .text(message);
+                return $(document.createElement("a"))
+                    .attr("href", "#")
+                    .attr("role", "menuitem")
                     .addClass("multiselector-item-limit-info")
                     .addClass("multiselector-list-item")
                     .mouseenter(function(event) {
@@ -229,29 +249,34 @@
                         $(event.currentTarget).addClass("highlight");
                     })
                     .click(helpers.extendSingleGrouping)
-                    .text(message);
+                    .append(span);
             },
             createShowAllContacts: function() {
                 var message = helpers.getMessage("common.item.show.all");
-                return $(".multiselector-results").append(
-                    $(document.createElement("div"))
-                        .addClass("show-all-contacts")
-                        .text(message)
-                        .click(function(event) {
-                            properties.showAll.contacts = true;
-                            properties.showAll.groups = true;
-                            properties.showAll.smartgroups = true;
-                            properties.showAll.selected = true;
-                            helpers.refreshList("");
-                            $(event.currentTarget).remove();
-                            helpers.highlightItem();
-                            $(".multiselector-input").focus();
-                        })
-                        .mouseenter(function(event) {
-                            $(".highlight").removeClass("highlight");
-                            $(event.currentTarget).addClass("highlight");
-                        })
-                );
+                var a = $(document.createElement("a"))
+                    .attr("href", "#")
+                    .attr("role", "menuitem")
+                    .addClass("show-all-contacts")
+                    .addClass("multiselector-list-item")
+                    .text(message)
+                    .click(function(event) {
+                        properties.showAll.contacts = true;
+                        properties.showAll.groups = true;
+                        properties.showAll.smartgroups = true;
+                        properties.showAll.selected = true;
+                        $(".show-all").addClass("active");
+                        helpers.refreshList("");
+                        $(event.currentTarget).remove();
+                        helpers.highlightItem();
+                        $(".multiselector-input").focus();
+                    })
+                    .mouseenter(function(event) {
+                        $(".highlight").removeClass("highlight");
+                        $(event.currentTarget).addClass("highlight");
+                    });
+                var li = $(document.createElement("li"))
+                    .append(a);
+                return $(".multiselector-results").append(li);
             },
             getMessage: function(code) {
                 if (multiSelector.translations !== null &&
@@ -281,7 +306,7 @@
                 var customClass = $(event.currentTarget).parents("li").eq(0).attr("class");
                 var item = $(helpers.createSelectedItem($(event.currentTarget).find(".multiselector-list-item-name").text(), customClass))
                     .click(helpers.deleteClickedSelection);
-                $(".multiselector-new-item").before(item);
+                $(".input-group").before(item);
 
                 for (var i = multiSelector.results.length - 1; i >= 0; i--) {
                     for (var j = 0; j < multiSelector.results[i].members.length; j++) {
@@ -363,9 +388,9 @@
                     var contacts = helpers.getGroupingByName(constants.groupingNames.contacts);
                     var groups = helpers.getGroupingByName(constants.groupingNames.groups);
                     var smartgroups = helpers.getGroupingByName(constants.groupingNames.smartgroups);
-                    var resultsUl = $(".multiselector-results").find("ul");
+                    var resultsUl = $(".multiselector-results");
 
-                    resultsUl.append(helpers.createGroupElement(contacts, multiSelector.options.contactItemDisplayLimit, properties.showAll.contacts)).find("ul");
+                    resultsUl.append(helpers.createGroupElement(contacts, multiSelector.options.contactItemDisplayLimit, properties.showAll.contacts));
                     resultsUl.append(helpers.createGroupElement(groups, multiSelector.options.groupItemDisplayLimit, properties.showAll.groups));
                     resultsUl.append(helpers.createGroupElement(smartgroups, multiSelector.options.smartgroupItemDisplayLimit, properties.showAll.smartgroups));
                 }
@@ -374,13 +399,17 @@
                 properties.showAll.contacts = true;
                 properties.showAll.groups = true;
                 properties.showAll.smartgroups = true;
+                $('.dropdown-toggle').dropdown('toggle');
                 if (!$(".multiselector-results").hasClass("hidden")) {
                     $(".multiselector-results").addClass("hidden");
+                    $(".show-all").removeClass("active");
                 } else {
                     properties.showAll.selected = true;
+                    $(".show-all").addClass("active");
                     helpers.refreshList("");
                     $(".multiselector-results").removeClass("hidden");
                 }
+                $(".multiselector-input").focus();
             },
             refreshList: function(text) {
                 helpers.clearList();
@@ -391,6 +420,9 @@
                         contactService.getFilteredMatches(helpers.getSelectedIDs(), text);
                 }
                 helpers.populateList();
+                if(!properties.showAll.selected) {
+                    helpers.createShowAllContacts();
+                }
             },
             getSelectionByIDs: function(IDs, fillList) {
                 var selected = [];
@@ -459,14 +491,8 @@
 
                 $(".highlight").removeClass("highlight");
 
-                if (element[0].nodeName === "UL") {
-                    if ($(".multiselector-list-item").length) {
-                        $(".multiselector-list-item").eq(index).addClass("highlight");
-                    } else if (lastItem && $(".add-phone-number").length) {
-                        $(".add-phone-number").addClass("highlight");
-                    } else if (!lastItem && $(".show-all-contacts").length) {
-                        $(".show-all-contacts").addClass("highlight");
-                    }
+                if (element.prop("nodeName") === "LI" && $(".multiselector-list-item").length) {
+                    $(".multiselector-list-item").eq(index).addClass("highlight");
                     return;
                 }
                 element.addClass("highlight");
@@ -489,7 +515,7 @@
                 selected.push(customContact);
                 var customContact = $(helpers.createSelectedItem(customContact.name, customCssClass))
                     .click(helpers.deleteClickedSelection);
-                $(".multiselector-new-item").before(customContact);
+                $(".input-group").before(customContact);
                 return customContact;
             }
         };
@@ -602,20 +628,32 @@
                     properties.showAll.groups = false;
                     properties.showAll.smartgroups = false;
                     properties.showAll.selected = false;
+                    $('.dropdown-toggle').dropdown('toggle');
+                    $(".show-all").removeClass("active");
                     helpers.refreshList(text);
                 }
 
                 if (!$(".add-phone-number").length && text.match(constants.regExPatterns.phoneNumber) !== null) {
-                    var addNumberElement = $(document.createElement("div"))
+                    var addNumberElement = $(document.createElement("a"))
+                        .attr("href", "#")
+                        .attr("role", "menuitem")
                         .addClass("add-phone-number")
+                        .addClass("multiselector-list-item")
                         .click(helpers.addPhoneNumberEvent)
                         .mouseenter(function(event) {
                             $(".highlight").removeClass("highlight");
-                            $(event.currentTarget).addClass("highlight");
+                            $(event.currentTarget)
+                                .addClass("highlight");
                         })
                         .text(helpers.getMessage("common.item.add.number"));
 
-                    $(".multiselector-results").prepend(addNumberElement);
+                    var divider = $(document.createElement("li"))
+                        .addClass("divider");
+                    var li = $(document.createElement("li"))
+                        .append(addNumberElement)
+                        .append(divider);
+
+                    $(".multiselector-results").prepend(li);
                 } else if ($(".add-phone-number").length && text.match(constants.regExPatterns.phoneNumber) === null) {
                     $(".add-phone-number").eq(0).remove();
                 }
@@ -624,10 +662,6 @@
                     results.removeClass('hidden');
                 } else if (!text.length) {
                     results.addClass('hidden');
-                }
-
-                if (!$(".show-all-contacts").length) {
-                    helpers.createShowAllContacts();
                 }
 
                 if (text !== "") {
@@ -680,6 +714,20 @@
                                 }
                                 multiselectorList.eq(i).removeClass("highlight");
                                 multiselectorList.eq(i + direction).addClass("highlight");
+                                var offset = multiselectorList.eq(i + direction).offset().top;
+                                var parentHeight = $('.multiselector-results').height();
+                                var parentScroll = $('.multiselector-results').scrollTop();
+                                if(offset > parentHeight) {
+                                    offset = parentScroll + offset - parentHeight;
+                                    $('.multiselector-results').animate({
+                                        scrollTop: offset
+                                    }, 20);
+                                } else if (offset < 60) {
+                                    offset = parentScroll + offset - 60;
+                                    $('.multiselector-results').animate({
+                                        scrollTop: offset
+                                    }, 20);
+                                }
                                 return;
                             } else if (currentHighlight.hasClass(orderBy[0])) {
                                 if ($(".multiselector-list-item").length) {
@@ -700,7 +748,7 @@
                 var selectedItem = helpers.createSelectedItem(multiSelector.selected[i].name, multiSelector.selected[i].customCssClass)
                     .click(helpers.deleteClickedSelection);
 
-                selection.find("li").eq(-1).before(selectedItem);
+                selection.find("div").eq(0).before(selectedItem);
             }
 
             currentElement.html(selection);

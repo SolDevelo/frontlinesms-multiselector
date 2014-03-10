@@ -12,35 +12,32 @@ li.multiselector-selected-item {
     overflow-y: scroll;
 }
 
-li.multiselector-list-item {
-    background-color: #FFFFFF;
+.dropdown-menu > li > a {
+    white-space: normal !important;
 }
 
-li.multiselector-list-item.highlight, div.show-all-contacts.highlight, div.add-phone-number.highlight {
-    background-color: #F00000;
-    cursor: pointer;
+a.multiselector-list-item.highlight {
+    background-color: #F5F5F5 !important;
 }
 
-li.multiselector-item-limit-info.highlight {
-    background-color: #00E000;
-    cursor: pointer;
+a.multiselector-list-item {
+    margin-left: 15px;
 }
 
 span.multiselector-list-item-name {
 }
 
 span.multiselector-list-item-metadata {
+    color: gray;
     float: right;
-    color: gray;
-    padding-right: 10px;
 }
 
-li.multiselector-list-item.selected {
-    color: green;
+a.multiselector-list-item.selected  {
+    color: gray !important;
 }
 
-li.multiselector-list-item.disabled {
-    color: gray;
+a.multiselector-list-item.disabled {
+    color: gray !important;
 }
 
 ul {
@@ -48,7 +45,12 @@ ul {
 }
 
 li.multiselector-selected-item {
-    float: left
+    float: left;
+    margin-right: 10px;
+}
+
+button.show-all.active {
+    background-color: #428BCA;
 }
 
 .hidden {
