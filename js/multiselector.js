@@ -264,7 +264,7 @@
                         properties.showAll.groups = true;
                         properties.showAll.smartgroups = true;
                         properties.showAll.selected = true;
-                        $(".show-all").addClass("active");
+                        $(".show-all").addClass("btn-primary");
                         helpers.refreshList("");
                         $(event.currentTarget).remove();
                         helpers.highlightItem();
@@ -402,10 +402,10 @@
                 $('.dropdown-toggle').dropdown('toggle');
                 if (!$(".multiselector-results").hasClass("hidden")) {
                     $(".multiselector-results").addClass("hidden");
-                    $(".show-all").removeClass("active");
+                    $(".show-all").removeClass("btn-primary");
                 } else {
                     properties.showAll.selected = true;
-                    $(".show-all").addClass("active");
+                    $(".show-all").addClass("btn-primary");
                     helpers.refreshList("");
                     $(".multiselector-results").removeClass("hidden");
                 }
@@ -629,7 +629,7 @@
                     properties.showAll.smartgroups = false;
                     properties.showAll.selected = false;
                     $('.dropdown-toggle').dropdown('toggle');
-                    $(".show-all").removeClass("active");
+                    $(".show-all").removeClass("btn-primary");
                     helpers.refreshList(text);
                 }
 
