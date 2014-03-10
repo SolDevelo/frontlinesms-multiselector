@@ -59,7 +59,7 @@
                 "smartgroups": false,
                 "selected": false
             }
-        }
+        };
 
         var multiSelector = {
             version: "0.3-SNAPSHOT",
@@ -121,7 +121,7 @@
                     .text(child.name);
                 var itemMetadataElement = $(document.createElement("span"))
                     .addClass("multiselector-list-item-metadata")
-                    .text(child.metadata)
+                    .text(child.metadata);
                 var childElement = $(document.createElement("a"))
                     .addClass("multiselector-list-item")
                     .attr("href", "#")
@@ -131,9 +131,9 @@
                         $(event.currentTarget).addClass("highlight");
                     })
                     .append(itemNameElement)
-                    .append(itemMetadataElement)
+                    .append(itemMetadataElement);
                 if($.inArray(child.id, helpers.getSelectedIDs().split(",")) !== -1) {
-                    childElement.addClass("selected");;
+                    childElement.addClass("selected");
                     itemMetadataElement.text(helpers.getMessage("common.item.selected"));
                     childElement.attr("title", helpers.getMessage("common.item.select.selected"));
                 }
@@ -198,7 +198,7 @@
                     .addClass("btn btn-default show-all")
                     .text(message)
                     .append(span)
-                    .click(helpers.showAllContacts)
+                    .click(helpers.showAllContacts);
             },
             createSelectionList: function(input, showAllButton) {
                 var selectionElement = $(document.createElement("ul"))
@@ -206,7 +206,7 @@
                     .width(multiSelector.options.width);
                 var inputGroupButton = $(document.createElement("div"))
                     .addClass("input-group-btn")
-                    .append(showAllButton)
+                    .append(showAllButton);
                 var inputGroup = $(document.createElement("div"))
                     .addClass("input-group");
                 inputGroup.append(input);
@@ -679,6 +679,7 @@
                     $(".multiselector-input").val("");
                     if (!$(".multiselector-results").hasClass("hidden")) {
                         $(".multiselector-results").addClass("hidden");
+                        $(".show-all").removeClass("btn-primary");
                     }
                 } else if (!$(".multiselector-results").hasClass("hidden")) {
                     if (keyId === 36) {

@@ -128,7 +128,7 @@ $(document).ready(function() {
 
         equal(selected.length, 3, "Check for size of returned array by getSelectionByIDs(...)");
         equal(ms.selected.length, 4, "Check for real size of selected array");
-        equal($(".multiselector-selected-item").length, 4, "Check selection for being available for user")
+        equal($(".multiselector-selected-item").length, 4, "Check selection for being available for user");
     });
 
     //13
