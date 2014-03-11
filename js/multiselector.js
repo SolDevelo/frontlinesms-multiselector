@@ -413,14 +413,14 @@
             },
             refreshList: function(text) {
                 helpers.clearList();
-                if(properties.showAll.selected) {
+                if (properties.showAll.selected) {
                     multiSelector.results = contactService.getAll();
                 } else {
                     multiSelector.results =
                         contactService.getFilteredMatches(helpers.getSelectedIDs(), text);
                 }
                 helpers.populateList();
-                if(!properties.showAll.selected) {
+                if (!properties.showAll.selected) {
                     helpers.createShowAllContacts();
                 }
             },
@@ -620,6 +620,7 @@
                     keyId == 36 || keyId === 38 || keyId === 40) {
                     //Escape, Tab, Home, End, Arrow Up and Down
                     //Do nothing because they're handled on key down event
+                    e.preventDefault();
                     return;
                 }
 
@@ -662,6 +663,7 @@
                     results.removeClass('hidden');
                 } else if (!text.length) {
                     results.addClass('hidden');
+                    $(".multiselector-selection button.show-all").removeClass("btn-primary");
                 }
 
                 if (text !== "") {
