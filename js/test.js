@@ -80,16 +80,18 @@ $(document).ready(function() {
     });
 
     //9
-    test("createSelectedItem(\"Annie\")", function() {
-        var selectedItem = helpers.createSelectedItem("Annie");
-        equal(selectedItem.hasClass('multiselector-selected-item'), true, "Proper class member");
-        equal($(selectedItem)[0].nodeName, "LI", "Proper node used");
-        equal(selectedItem.text(), "Annie", "Proper value");
+    test("createSelectedItem(\"Annie\", \"contacts\", true)", function() {
+        helpers.createSelectedItem("Annie", "contacts", true);
+        var selectedItem = $(".token").eq(-1);
+        equal(selectedItem.hasClass('contacts'), true, "Proper class member");
+        equal($(selectedItem)[0].nodeName, "DIV", "Proper node used");
+        equal(selectedItem.text(), "Annie×", "Proper value");
+        selectedItem.find(".close").trigger("click").trigger("click");
     });
 
     //10
-    test("addSelectedItem() and deleteClickedSelection()", function() {
-        var input = $(".multiselector-input");
+    test("addSelectedItem() and deleteSelection()", function() {
+        var input = $(".token-input");
         var keyEvent = jQuery.Event("keyup");
 
         input.val("alicia");
@@ -99,11 +101,11 @@ $(document).ready(function() {
 
         equal($(".multiselector-list-item").length, 2, "One element found for \"alicia\"");
         $(".multiselector-list-item").trigger("click");
-        equal($(".multiselector-selected-item").length, 5, "One element selected");
+        equal($(".token").length, 5, "One element selected");
         equal(ms.selected.length, 5, "Check is it go to selected array");
-        $(".multiselector-selected-item").eq(-1).trigger("click");
+        $(".token").eq(-1).find(".close").trigger("click").trigger("click");
         equal(ms.selected.length, 4, "Check is it removed successfully deleted from selected array");
-        equal($(".multiselector-selected-item").length, 4, "Check if selection exist");
+        equal($(".token").length, 4, "Check if selection exist");
 
         input.val("");
         keyEvent.which = 8;
@@ -113,12 +115,12 @@ $(document).ready(function() {
     //11
     test("Adding phone number to the selection", function() {
         helpers.addPhoneNumber("+112");
-        equal($(".multiselector-selected-item").length, 5, "Adding number +112");
-        equal($(".multiselector-selected-item").eq(-1).text(), "+112", "Proper number visible");
+        equal($(".token").length, 5, "Adding number +112");
+        equal($(".token").eq(-1).text(), "+112×", "Proper number visible");
         equal(ms.selected.length, 5, "Is added to selected array?");
-        $(".multiselector-selected-item").eq(-1).trigger("click");
+        $(".token").eq(-1).find(".close").trigger("click").trigger("click");
         equal(ms.selected.length, 4, "Is deleted from selected array?");
-        equal($(".multiselector-selected-item").length, 4, "Check if number selection exist");
+        equal($(".token").length, 4, "Check if number selection exist");
     });
 
     //12
@@ -128,7 +130,7 @@ $(document).ready(function() {
 
         equal(selected.length, 3, "Check for size of returned array by getSelectionByIDs(...)");
         equal(ms.selected.length, 4, "Check for real size of selected array");
-        equal($(".multiselector-selected-item").length, 4, "Check selection for being available for user");
+        equal($(".token").length, 4, "Check selection for being available for user");
     });
 
     //13
@@ -138,6 +140,7 @@ $(document).ready(function() {
 
         equal(isAdded, true, "Is addObject(...) working?");
         equal(callbackResult, "contact-4");
+        $(".token").eq(-1).find(".close").trigger("click").trigger("click");
     });
 
     //Restore defualt value

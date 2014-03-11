@@ -70,3 +70,10 @@ li.multiselector-selected-item.selected {
 
 .group li {
 }
+
+.input-group-btn {
+    position: relative;
+    left: 0px;
+    top: 0px;
+    vertical-align: bottom;
+}
