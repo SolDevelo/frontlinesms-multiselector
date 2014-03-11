@@ -7,7 +7,10 @@ $(document).ready(function() {
         contactItemDisplayLimit: 4,
         groupItemDisplayLimit: 1,
         smartgroupItemDisplayLimit: 1,
-        objectAdded: function(id) { return id; }
+        objectAdded: function(objectId) {
+            $("#lastId").text("Last added id: " + objectId);
+            return objectId;
+        }
     };
     var translations = {
         "en_US": {
