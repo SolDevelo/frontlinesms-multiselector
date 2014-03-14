@@ -8,27 +8,27 @@ $(document).ready(function() {
     test("getFilteredMatches(\"\",\"\") - whole database", function() {
         ms.results = contactService.getFilteredMatches("","");
 
-        equal(helpers.getGroupingByName('Contacts').members.length , 13, "Found proper number of matching items in contacts");
-        equal(helpers.getGroupingByName('Groups').members.length, 3, "Found proper number of matching items in groups");
-        equal(helpers.getGroupingByName('Smart Groups').members.length, 2, "Found proper number of matching items in smartgroups");
+        equal((helpers.getGroupingByName('Contacts') != null), true, "Found items in contacts");
+        equal((helpers.getGroupingByName('Groups') != null), true, "Found items in groups");
+        equal((helpers.getGroupingByName('Smart Groups') != null), true, "Found items in smartgroups");
     });
 
     //2
     test("getFilteredMatches(\"\", \'朴\') - non-latin characters", function() {
         ms.results = contactService.getFilteredMatches("", '朴');
 
-        equal(helpers.getGroupingByName('Contacts').members.length , 1, "Found proper number of matching items in contacts");
-        equal(helpers.getGroupingByName('Groups'), null, "Found proper number of matching items in groups");
-        equal(helpers.getGroupingByName('Smart Groups'), null, "Found proper number of matching items in smartgroups");
+        equal((helpers.getGroupingByName('Contacts') != null), true, "Found contact with 朴 character.");
+        equal(helpers.getGroupingByName('Groups'), null, "Not found group with 朴 character.");
+        equal(helpers.getGroupingByName('Smart Groups'), null, "Not found smartgroup with 朴 character.");
     });
 
     //3
     test("getFilteredMatches(\"\", \'i\') - latin characters", function() {
         ms.results = contactService.getFilteredMatches("", 'i');
 
-        equal(helpers.getGroupingByName('Contacts').members.length , 9, "Found proper number of matching items in contacts");
-        equal(helpers.getGroupingByName('Groups').members.length, 2, "Found proper number of matching items in groups");
-        equal(helpers.getGroupingByName('Smart Groups').members.length, 1, "Found proper number of matching items in smartgroups");
+        equal((helpers.getGroupingByName('Contacts') != null), true, "Found contacts with 'i' character.");
+        equal((helpers.getGroupingByName('Groups') != null), true, "Found groups with 'i' character.");
+        equal((helpers.getGroupingByName('Smart Groups') != null), true, "Found smartgroups with 'i' character.");
     });
 
     //4
@@ -99,13 +99,15 @@ $(document).ready(function() {
         keyEvent.which = 65;
         input.trigger(keyEvent);
 
-        equal($(".multiselector-list-item").length, 2, "One element found for \"alicia\"");
-        $(".multiselector-list-item").trigger("click");
-        equal($(".token").length, 5, "One element selected");
-        equal(ms.selected.length, 5, "Check is it go to selected array");
+        var tokenCount = $(".token").length;
+
+        equal(($(".multiselector-list-item").length > 1), true, "Found elements for \"alicia\"");
+        $(".multiselector-list-item").eq(0).trigger("click");
+        equal($(".token").length, tokenCount + 1, "One element selected");
+        equal(ms.selected.length, tokenCount + 1, "Check is it go to selected array");
         $(".token").eq(-1).find(".close").trigger("click").trigger("click");
-        equal(ms.selected.length, 4, "Check is it removed successfully deleted from selected array");
-        equal($(".token").length, 4, "Check if selection exist");
+        equal(ms.selected.length, tokenCount, "Check is it removed successfully deleted from selected array");
+        equal($(".token").length, tokenCount, "Check if selection exist");
 
         input.val("");
         keyEvent.which = 8;
@@ -114,13 +116,15 @@ $(document).ready(function() {
 
     //11
     test("Adding phone number to the selection", function() {
+        var tokenCount = $(".token").length;
+
         helpers.addPhoneNumber("+112");
-        equal($(".token").length, 5, "Adding number +112");
+        equal($(".token").length, tokenCount + 1, "Adding number +112");
         equal($(".token").eq(-1).text(), "+112×", "Proper number visible");
-        equal(ms.selected.length, 5, "Is added to selected array?");
+        equal(ms.selected.length, tokenCount + 1, "Is added to selected array?");
         $(".token").eq(-1).find(".close").trigger("click").trigger("click");
-        equal(ms.selected.length, 4, "Is deleted from selected array?");
-        equal($(".token").length, 4, "Check if number selection exist");
+        equal(ms.selected.length, tokenCount, "Is deleted from selected array?");
+        equal($(".token").length, tokenCount, "Check if number selection exist");
     });
 
     //12
@@ -129,8 +133,7 @@ $(document).ready(function() {
         var selected = helpers.getSelectionByIDs(exampleIdArray);
 
         equal(selected.length, 3, "Check for size of returned array by getSelectionByIDs(...)");
-        equal(ms.selected.length, 4, "Check for real size of selected array");
-        equal($(".token").length, 4, "Check selection for being available for user");
+        equal(ms.selected.length, $(".token").length, "Check for real size of selected array is equal to count of elements representing selection.");
     });
 
     //13

@@ -26,7 +26,7 @@
 (function($) {
     "use strict";
 
-    $.fn.multiselect = function(options, translations, defaultSelection) {
+    $.fn.multiselect = function(options, translations, defaultSelection, contactServiceObj) {
         // currently selected element === this
         // assigning it to a variable for use in inline functions
         var currentElement = this;
@@ -81,7 +81,8 @@
                     "common.item.add.number": "Add this phone number"
                 }
             },
-            translations: (translations === undefined) ? null : translations
+            translations: (translations === undefined) ? null : translations,
+            contactServiceObject: contactServiceObj
         };
 
         var helpers = {
@@ -421,10 +422,10 @@
             refreshList: function(text) {
                 helpers.clearList();
                 if (properties.showAll.selected) {
-                    multiSelector.results = contactService.getAll();
+                    multiSelector.results = multiSelector.contactServiceObject.getAll();
                 } else {
                     multiSelector.results =
-                        contactService.getFilteredMatches(helpers.getSelectedIDs(), text);
+                        multiSelector.contactServiceObject.getFilteredMatches(helpers.getSelectedIDs(), text);
                 }
                 helpers.populateList();
                 if (!properties.showAll.selected) {
@@ -435,7 +436,7 @@
                 var selected = [];
                 var isAddedToSelection = [];
                 if (IDs && IDs.length) {
-                    var contactBase = contactService.getAll();
+                    var contactBase = multiSelector.contactServiceObject.getAll();
 
                     if (contactBase) {
                         for (var i in IDs) {
@@ -550,7 +551,7 @@
 
         multiSelector.addObject = function(objectId) {
             var added = false;
-            var results = contactService.getFilteredMatches(helpers.getSelectedIDs(), "");
+            var results = multiSelector.contactServiceObject.getFilteredMatches(helpers.getSelectedIDs(), "");
             // for each grouping
             for (var i = 0; i < results.length && !added; i++) {
                 for (var m = 0; m < results[i].members.length; m++) {

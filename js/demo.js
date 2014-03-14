@@ -20,5 +20,5 @@ $(document).ready(function() {
     };
     var preloadedIDs = ["contact-6", "contact-10", "110", "+48987654321"];
 
-    ms = $("div#container").multiselect(options, translations, preloadedIDs);
+    ms = $("div#container").multiselect(options, translations, preloadedIDs, contactService);
 });
