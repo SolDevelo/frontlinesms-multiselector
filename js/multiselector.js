@@ -228,6 +228,9 @@
                     label: text
                 });
                 if ($(".token").eq(-1).attr("data-value") === text) {
+                    if (!$(".token").eq(-1).hasClass("multiselector-selected-item")) {
+                        $(".token").eq(-1).addClass("multiselector-selected-item");
+                    }
                     $(".token").eq(-1).addClass(customClass);
                     var span =  $(".token").find(".token-label").eq(-1);
                     var icon = $(document.createElement("span")).addClass("glyphicon");
@@ -665,9 +668,17 @@
 
                     multiSelector.previousText = "";
                     return;
-                } else if (keyId === 9 || keyId === 27 || keyId === 35 ||
+                } else if (keyId === 9) {
+                    //Handling Tab key that works for both web browsers(firefox and chrome)
+                    $(".token-input").val("");
+                    if (!$(".multiselector-results").hasClass("hidden")) {
+                        $(".multiselector-results").addClass("hidden");
+                        $(".show-all").removeClass("btn-primary");
+                    }
+                    return;
+                } else if (keyId === 27 || keyId === 35 ||
                     keyId == 36 || keyId === 38 || keyId === 40) {
-                    //Escape, Tab, Home, End, Arrow Up and Down
+                    //Escape, Home, End, Arrow Up and Down
                     //Do nothing because they're handled on key down event
                     e.preventDefault();
                     return;
@@ -726,12 +737,13 @@
                 var keyId = event.keyCode;
 
                 if (keyId === 9 || keyId === 27) {
-                    //Tab or escape
+                    //Tab(works only with Firefox) or escape
                     $(".token-input").val("");
                     if (!$(".multiselector-results").hasClass("hidden")) {
                         $(".multiselector-results").addClass("hidden");
                         $(".show-all").removeClass("btn-primary");
                     }
+                    return;
                 } else if ($(".multiselector-results").hasClass("hidden")) {
                     if (keyId == 46) {
                         //Delete
@@ -756,9 +768,16 @@
                     if (keyId === 36) {
                         //Home
                         helpers.highlightItem();
+                        if ($(".multiselector-results").length) {
+                            $(".multiselector-results").eq(0).scrollTop(0);
+                        }
                     } else if (keyId === 35) {
                         //End
                         helpers.highlightItem(true);
+                        var results = $(".multiselector-results");
+                        if (results.length) {
+                            results.eq(0).scrollTop(results.eq(0).prop("scrollHeight"));
+                        }
                     } else if (keyId === 38 || keyId === 40) {
                         //Arrow Up or Arrow Down
                         var direction = (keyId === 38) ? -1 : 1;
@@ -794,8 +813,8 @@
                                     $('.multiselector-results').animate({
                                         scrollTop: offset
                                     }, 20);
-                                } else if (offset < 60) {
-                                    offset = parentScroll + offset - 60;
+                                } else if (offset < 150) {
+                                    offset = parentScroll + offset - 150;
                                     $('.multiselector-results').animate({
                                         scrollTop: offset
                                     }, 20);
