@@ -229,6 +229,18 @@
                 });
                 if ($(".token").eq(-1).attr("data-value") === text) {
                     $(".token").eq(-1).addClass(customClass);
+                    var span =  $(".token").find(".token-label").eq(-1);
+                    var icon = $(document.createElement("span")).addClass("glyphicon");
+                    if (customClass === "phone-number") {
+                        $(icon).addClass("glyphicon-phone");
+                    } else if(customClass === "contacts") {
+                        $(icon).addClass("glyphicon-user");
+                    } else if(customClass === "groups") {
+                        $(icon).addClass("glyphicon-th");
+                    } else if(customClass === "smartgroups") {
+                        $(icon).addClass("glyphicon-globe")
+                    }
+                    span.before(icon);
                 }
                 //Reset to default policy
                 helpers.setAntiduplicateSelectionPolicy(true);
@@ -401,6 +413,19 @@
                     resultsUl.append(helpers.createGroupElement(contacts, multiSelector.options.contactItemDisplayLimit, properties.showAll.contacts));
                     resultsUl.append(helpers.createGroupElement(groups, multiSelector.options.groupItemDisplayLimit, properties.showAll.groups));
                     resultsUl.append(helpers.createGroupElement(smartgroups, multiSelector.options.smartgroupItemDisplayLimit, properties.showAll.smartgroups));
+
+                    if (resultsUl.find(".contacts").length) {
+                        resultsUl.find(".contacts").find(".dropdown-header").eq(0)
+                            .prepend($(document.createElement("span")).addClass("glyphicon glyphicon-user"));
+                    }
+                    if (resultsUl.find(".groups").length) {
+                        resultsUl.find(".groups").find(".dropdown-header").eq(0)
+                            .prepend($(document.createElement("span")).addClass("glyphicon glyphicon-th"));
+                    }
+                    if (resultsUl.find(".smartgroups").length) {
+                        resultsUl.find(".smartgroups").find(".dropdown-header").eq(0)
+                            .prepend($(document.createElement("span")).addClass("glyphicon glyphicon-globe"));
+                    }
                 }
             },
             showAllContacts: function() {
