@@ -447,7 +447,7 @@
                     helpers.refreshList("");
                     $(".multiselector-results").removeClass("hidden");
                 }
-                $(".token-input").focus();
+                $(".token-input").val("").focus();
             },
             refreshList: function(text) {
                 helpers.clearList();
@@ -657,9 +657,14 @@
                 if (duplicatePolicy) {
                     duplicatePolicy(e);
                 }
+                multiSelector.previousText = "";
+                $(".token-input").val("");
+                $(".multiselector-results").addClass("hidden");
             }).on("tokenfield:removetoken", function(e) {
                 helpers.deleteSelection(e.token.value);
             }).tokenfield();
+
+
 
             var handleKeyUp = function(e) {
                 var keyId = e.keyCode;
@@ -674,13 +679,13 @@
                         input.val(text);
                     }
 
-                    if ((!text.length && !$(".highlight").length) || $(".multiselector-results").hasClass("hidden")) {
+                    if (!text.length && !$(".highlight").length) {
                         return;
                     }
 
                     if ($(".highlight").length) {
                         $(".highlight").eq(0).trigger("click");
-                        helpers.highlightItem();
+                        $(".highlight").remove();
                     }
                     input.focus();
 
@@ -766,19 +771,6 @@
                         $(".show-all").removeClass("btn-primary");
                     }
                     return;
-                } else if ($(".multiselector-results").hasClass("hidden")) {
-                    if (keyId == 46) {
-                        //Delete
-                        var selection = $(".multiselector-selected-item.selected");
-                        if (selection.length > 0) {
-                            if (selection.prev().length > 0) {
-                                selection.prev().addClass("selected");
-                            } else if (selection.next().length > 0) {
-                                selection.next().addClass("selected");
-                            }
-                            selection.click();
-                        }
-                    }
                 } else {
                     if (keyId === 36) {
                         //Home
@@ -859,6 +851,10 @@
             //Handling input
             selection.keyup(handleKeyUp);
             selection.keydown(handleKeyDown);
+
+            $(".token-input").focusout(function(e){
+                $(".token-input").val("");
+            });
         };
         transformElement();
 
