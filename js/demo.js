@@ -21,4 +21,24 @@ $(document).ready(function() {
     var preloadedIDs = ["contact-6", "contact-10", "110", "+48987654321"];
 
     ms = $("div#container").multiselect(options, translations, preloadedIDs, contactService);
+
+    var changeScript = function(pathToScript, onErrorText){
+        ms.deepClean();
+
+        $("body").prepend($(document.createElement("img")).attr("src", "images/ajax-loader.gif")
+            .addClass("img-reload-contactservice"));
+
+        $.getScript(pathToScript, function( data, textStatus, jqxhr ) {
+            ms.contactServiceObject = new ContactService();
+            $(".img-reload-contactservice").eq(0).remove();
+        }).fail(function( jqxhr, settings, exception ) {
+            $(".img-reload-contactservice").eq(0).remove();
+            alert(onErrorText);
+        });
+    }
+
+    $("select.choose-contactservice").change(function(e){
+        changeScript($(e.currentTarget).val(),
+            "An error has occurred while changing contact database!");
+    });
 });

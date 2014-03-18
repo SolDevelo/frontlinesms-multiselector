@@ -232,18 +232,20 @@
                         $(".token").eq(-1).addClass("multiselector-selected-item");
                     }
                     $(".token").eq(-1).addClass(customClass);
-                    var span =  $(".token").find(".token-label").eq(-1);
-                    var icon = $(document.createElement("span")).addClass("glyphicon");
-                    if (customClass === "phone-number") {
-                        $(icon).addClass("glyphicon-phone");
-                    } else if(customClass === "contacts") {
-                        $(icon).addClass("glyphicon-user");
-                    } else if(customClass === "groups") {
-                        $(icon).addClass("glyphicon-th");
-                    } else if(customClass === "smartgroups") {
-                        $(icon).addClass("glyphicon-globe")
+                    if (!$(".token").eq(-1).find(".glyphicon").length) {
+                        var span =  $(".token").find(".token-label").eq(-1);
+                        var icon = $(document.createElement("span")).addClass("glyphicon");
+                        if (customClass === "phone-number") {
+                            $(icon).addClass("glyphicon-phone");
+                        } else if(customClass === "contacts") {
+                            $(icon).addClass("glyphicon-user");
+                        } else if(customClass === "groups") {
+                            $(icon).addClass("glyphicon-th");
+                        } else if(customClass === "smartgroups") {
+                            $(icon).addClass("glyphicon-globe")
+                        }
+                        span.before(icon);
                     }
-                    span.before(icon);
                 }
                 //Reset to default policy
                 helpers.setAntiduplicateSelectionPolicy(true);
@@ -627,6 +629,22 @@
             return helpers;
         };
 
+        multiSelector.deepClean = function() {
+            this.contactServiceObject = null;
+            this.results = [];
+            this.selected = [];
+            $(".token").remove();
+            $(".token-input").val("");
+            multiSelector.previousText = "";
+
+            var resultDiv = $(".multiselector-results");
+            if (resultDiv.length) {
+                if (!resultDiv.hasClass("hidden")) {
+                    resultDiv.addClass("hidden");
+                }
+            }
+        }
+
         // Function transforming the currently selected (with jQuery) element into the dropdown
         var transformElement = function() {
 
@@ -731,6 +749,10 @@
                 }
 
                 multiSelector.previousText = text;
+
+                if (text !== "") {
+                    $(".token-input").focus();
+                }
             };
 
             var handleKeyDown = function(event) {
@@ -755,13 +777,6 @@
                                 selection.next().addClass("selected");
                             }
                             selection.click();
-                        }
-                    } else if (keyId === 8) {
-                        //Backspace
-                        var selectionPrev = $(".multiselector-selected-item.selected").prev();
-
-                        if (selectionPrev.length > 0) {
-                            selectionPrev.click();
                         }
                     }
                 } else {

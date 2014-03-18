@@ -82,3 +82,7 @@ li.multiselector-selected-item.selected {
     margin-left: 4px;
     margin-right: 4px;
 }
+
+#lastId, div.contactservice-menu {
+    margin: 10px;
+}
