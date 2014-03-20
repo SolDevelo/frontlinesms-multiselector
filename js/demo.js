@@ -35,10 +35,9 @@ $(document).ready(function() {
             $(".img-reload-contactservice").eq(0).remove();
             alert(onErrorText);
         });
-    }
+    };
 
     $("select.choose-contactservice").change(function(e){
-        changeScript($(e.currentTarget).val(),
-            "An error has occurred while changing contact database!");
+        changeScript($(e.currentTarget).val(), "An error has occurred while changing contact database!");
     });
 });

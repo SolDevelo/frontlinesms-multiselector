@@ -31,7 +31,6 @@
         // assigning it to a variable for use in inline functions
         var currentElement = this;
         var defaultOptions = {
-            width: 600,
             minResultsHeight: 300,
             contactItemDisplayLimit: 15,
             groupItemDisplayLimit: 5,
@@ -205,8 +204,7 @@
             },
             createSelectionList: function(input, showAllButton) {
                 var selectionElement = $(document.createElement("ul"))
-                    .addClass("multiselector-selection")
-                    .width(multiSelector.options.width);
+                    .addClass("multiselector-selection");
                 var inputGroupButton = $(document.createElement("div"))
                     .addClass("input-group-btn")
                     .append(showAllButton);
@@ -242,7 +240,7 @@
                         } else if(customClass === "groups") {
                             $(icon).addClass("glyphicon-th");
                         } else if(customClass === "smartgroups") {
-                            $(icon).addClass("glyphicon-globe")
+                            $(icon).addClass("glyphicon-globe");
                         }
                         span.before(icon);
                     }
@@ -257,7 +255,6 @@
                     .addClass("dropdown-toggle")
                     .addClass("hidden")
                     .attr("role", "menu")
-                    .width(multiSelector.options.width)
                     .height(multiSelector.options.minResultsHeight);
             },
             clearList: function() {
@@ -281,6 +278,12 @@
                     .click(helpers.extendSingleGrouping)
                     .append(span);
             },
+            updateAllShowAllProperties: function(setAll) {
+                properties.showAll.contacts = setAll;
+                properties.showAll.groups = setAll;
+                properties.showAll.smartgroups = setAll;
+                properties.showAll.selected = setAll;
+            },
             createShowAllContacts: function() {
                 var message = helpers.getMessage("common.item.show.all");
                 var a = $(document.createElement("a"))
@@ -290,10 +293,7 @@
                     .addClass("multiselector-list-item")
                     .text(message)
                     .click(function(event) {
-                        properties.showAll.contacts = true;
-                        properties.showAll.groups = true;
-                        properties.showAll.smartgroups = true;
-                        properties.showAll.selected = true;
+                        helpers.updateAllShowAllProperties(true);
                         $(".show-all").addClass("btn-primary");
                         helpers.refreshList("");
                         $(event.currentTarget).remove();
@@ -334,7 +334,6 @@
                 }
 
                 var customClass = $(event.currentTarget).parents("li").eq(0).attr("class");
-
                 helpers.createSelectedItem($(event.currentTarget)
                     .find(".multiselector-list-item-name").text(), customClass, false);
 
@@ -352,7 +351,8 @@
                                 helpers.refreshList("");
                             }
                             helpers.highlightItem();
-                            $(".token-input").focus();
+                            $(".token-input").val("").focus();
+                            helpers.toggleShowAllButton(false);
                             multiSelector.options.objectAdded(objectId);
                             return;
                         }
@@ -431,6 +431,18 @@
                         resultsUl.find(".smartgroups").find(".dropdown-header").eq(0)
                             .prepend($(document.createElement("span")).addClass("glyphicon glyphicon-globe"));
                     }
+                }
+            },
+            toggleShowAllButton: function(show) {
+                helpers.updateAllShowAllProperties(show);
+
+                var showAllButton = $(".multiselector-selection button.show-all");
+                if (show) {
+                    showAllButton.addClass("btn-primary");
+                    $(".multiselector-results").removeClass("hidden");
+                } else {
+                    showAllButton.removeClass("btn-primary");
+                    helpers.hideResults();
                 }
             },
             showAllContacts: function() {
@@ -538,7 +550,7 @@
             addCustomContact: function(customContact, selected, customCssClass) {
                 if (!customContact || !customContact.hasOwnProperty("name") || !customContact.hasOwnProperty("id") ||
                     !customContact.hasOwnProperty("metadata")) {
-                    return;
+                    return false;
                 }
                 if (!selected) {
                     selected = multiSelector.selected;
@@ -546,12 +558,14 @@
 
                 for (var i = 0; i < selected.length; i++) {
                     if (selected[i].name === customContact.name) {
-                        return;
+                        return false;
                     }
                 }
                 customContact.customCssClass = customCssClass;
                 selected.push(customContact);
                 helpers.createSelectedItem(customContact.name, customCssClass, true);
+                $(".token-input").val("").focus();
+                $(".multiselector-results").addClass("hidden");
                 return true;
             },
             setAntiduplicateSelectionPolicy: function(enable) {
@@ -589,7 +603,6 @@
                     if (id === objectId) {
                         var contact = results[i].members[m];
                         helpers.addCustomContact(contact, null, results[i].customCssClass);
-
                         added = true;
                     }
                 }
@@ -607,8 +620,8 @@
         };
 
         multiSelector.removeObject = function(objectId) {
-            if (objectRemoved === "function") {
-                objectRemoved(objectId);
+            if (multiSelector.options.objectRemoved === "function") {
+                multiSelector.options.objectRemoved(objectId);
             }
         };
 

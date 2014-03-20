@@ -1,4 +1,5 @@
 ul.multiselector-selection {
+    width: 100%;
     margin: 15px 0px 15px 0px;
 }
 
@@ -14,6 +15,7 @@ li.multiselector-selected-item {
     background-color: #FFFFFF;
     box-shadow: 1px 1px 5px 0px #000000;
     overflow-y: scroll;
+    width: 100%;
 }
 
 .dropdown-menu > li > a {
