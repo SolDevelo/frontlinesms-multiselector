@@ -77,7 +77,7 @@ li.multiselector-selected-item.selected {
     vertical-align: bottom;
 }
 
-.glyphicon {
+.multiselector-selection .fa, .multiselector-results .fa {
     margin-left: 4px;
     margin-right: 4px;
 }

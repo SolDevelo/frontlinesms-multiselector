@@ -10,6 +10,9 @@ $(document).ready(function() {
         objectAdded: function(objectId) {
             $("#lastId").text("Last added id: " + objectId);
             return objectId;
+        },
+        icons: {
+            "contacts": "fa fa-user"
         }
     };
     var translations = {
