@@ -354,6 +354,7 @@
                             $(".token-input").val("").focus();
                             helpers.toggleShowAllButton(false);
                             multiSelector.options.objectAdded(objectId);
+                            helpers.updateInputWidth();
                             return;
                         }
                     }
@@ -386,6 +387,9 @@
             deleteSelection: function(text) {
                 for (var i = 0; i < multiSelector.selected.length; i++) {
                     if (text === multiSelector.selected[i].name) {
+                        if (multiSelector.options.objectRemoved === "function") {
+                            multiSelector.options.objectRemoved(multiSelector.selected[i].id);
+                        }
                         multiSelector.selected.splice(i, 1);
                         if (!$(".multiselector-results").hasClass("hidden")) {
                             if ($(".show-all-contacts").length) {
@@ -394,6 +398,7 @@
                                 helpers.refreshList("");
                             }
                         }
+                        helpers.updateInputWidth();
                         return;
                     }
                 }
@@ -587,6 +592,50 @@
                 } else {
                     duplicatePolicy = null;
                 }
+            },
+            calculateStringWidth: function(str) {
+                var body = $("body");
+                var font = body.css("font-family");
+                var str_object = $(document.createElement("div")).css({
+                    "position": "absolute",
+                    "float": "left",
+                    "white-space": "nowrap",
+                    "visibility": "hidden",
+                    "font-family": font
+                }).text(str).appendTo(body);
+                var str_width = str_object.width();
+                str_object.remove();
+                return str_width;
+            },
+            getLastTokenLineWidth: function() {
+                var wrapperWidth = $(".tokenfield").width();
+                var width = 0;
+
+                $("div.tokenfield div.token").each(function(index, element) {
+                    var elementWidth = $(element).outerWidth(true);
+                    width += elementWidth;
+                    if (width >= wrapperWidth) {
+                        width = elementWidth;
+                    }
+                });
+
+                return width;
+            },
+            updateInputWidth: function() {
+                var input = $(".token-input");
+                var inputWidth = input.width();
+                var parentWidth = input.parent().width();
+                var text = input.val();
+                var textWidth = helpers.calculateStringWidth(text);
+                var lastLineWidth = helpers.getLastTokenLineWidth();
+                var widthDifference = parentWidth - lastLineWidth;
+
+                input.width(widthDifference);
+                inputWidth = input.width();
+
+                if (textWidth >= inputWidth) {
+                    input.width(parentWidth);
+                }
             }
         };
 
@@ -656,7 +705,7 @@
                     resultDiv.addClass("hidden");
                 }
             }
-        }
+        };
 
         // Function transforming the currently selected (with jQuery) element into the dropdown
         var transformElement = function() {
@@ -672,7 +721,9 @@
                 }
             }).on("tokenfield:removetoken", function(e) {
                 helpers.deleteSelection(e.token.value);
-            }).tokenfield();
+            }).tokenfield({
+                minWidth: 0
+            });
 
             var handleKeyUp = function(e) {
                 var keyId = e.keyCode;
@@ -708,7 +759,7 @@
                     }
                     return;
                 } else if (keyId === 27 || keyId === 35 ||
-                    keyId == 36 || keyId === 38 || keyId === 40) {
+                    keyId === 36 || keyId === 38 || keyId === 40) {
                     //Escape, Home, End, Arrow Up and Down
                     //Do nothing because they're handled on key down event
                     e.preventDefault();
@@ -716,10 +767,7 @@
                 }
 
                 if (text !== multiSelector.previousText) {
-                    properties.showAll.contacts = false;
-                    properties.showAll.groups = false;
-                    properties.showAll.smartgroups = false;
-                    properties.showAll.selected = false;
+                    helpers.updateAllShowAllProperties(false);
                     $('.dropdown-toggle').dropdown('toggle');
                     $(".show-all").removeClass("btn-primary");
                     helpers.refreshList(text);
@@ -764,6 +812,7 @@
                 multiSelector.previousText = text;
 
                 if (text !== "") {
+                    helpers.updateInputWidth();
                     $(".token-input").focus();
                 }
             };
@@ -780,7 +829,7 @@
                     }
                     return;
                 } else if ($(".multiselector-results").hasClass("hidden")) {
-                    if (keyId == 46) {
+                    if (keyId === 46) {
                         //Delete
                         var selection = $(".multiselector-selected-item.selected");
                         if (selection.length > 0) {
