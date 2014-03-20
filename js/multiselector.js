@@ -134,6 +134,7 @@
                     })
                     .append(itemNameElement)
                     .append(itemMetadataElement);
+
                 if($.inArray(child.id, helpers.getSelectedIDs().split(",")) !== -1) {
                     childElement.addClass("selected");
                     itemMetadataElement.text(helpers.getMessage("common.item.selected"));
@@ -144,6 +145,10 @@
                     childElement.addClass("disabled");
                     childElement.attr("title", helpers.getMessage("common.group.select.disabled"));
                     return childElement;
+                }
+
+                if (child.memberCount !== undefined) {
+                    childElement.attr("data-member-count", child.memberCount);
                 }
 
                 childElement.click(helpers.addSelectedItem);
@@ -215,34 +220,47 @@
 
                 return selectionElement.append(inputGroup);
             },
-            createSelectedItem: function(text, customClass, skipChecking) {
+            createMemberCountElement: function(count) {
+                return $(document.createElement("span")).addClass("badge").text(count);
+            },
+            createSelectedItem: function(text, customClass, skipChecking, memberCount) {
                 if (skipChecking) {
                     helpers.setAntiduplicateSelectionPolicy(false);
                 } else {
                     helpers.setAntiduplicateSelectionPolicy(true);
                 }
-                $(".multiselector-input").eq(0).tokenfield('createToken', {
-                    value: text,
-                    label: text
-                });
-                if ($(".token").eq(-1).attr("data-value") === text) {
-                    if (!$(".token").eq(-1).hasClass("multiselector-selected-item")) {
-                        $(".token").eq(-1).addClass("multiselector-selected-item");
-                    }
-                    $(".token").eq(-1).addClass(customClass);
-                    if (!$(".token").eq(-1).find(".glyphicon").length) {
-                        var span =  $(".token").find(".token-label").eq(-1);
-                        var icon = $(document.createElement("span")).addClass("glyphicon");
-                        if (customClass === "phone-number") {
-                            $(icon).addClass("glyphicon-phone");
-                        } else if(customClass === "contacts") {
-                            $(icon).addClass("glyphicon-user");
-                        } else if(customClass === "groups") {
-                            $(icon).addClass("glyphicon-th");
-                        } else if(customClass === "smartgroups") {
-                            $(icon).addClass("glyphicon-globe");
+                var exists = $(".tokenfield").find(".multiselector-selected-item[data-value='" + text + "']").length;
+                if (!exists) {
+                    $(".multiselector-input").eq(0).tokenfield('createToken', {
+                        value: text,
+                        label: text
+                    });
+                    var token = $(".token").eq(-1);
+                    if (token.attr("data-value") === text) {
+                        if (!token.eq(-1).hasClass("multiselector-selected-item")) {
+                            token.addClass("multiselector-selected-item");
                         }
-                        span.before(icon);
+                        token.addClass(customClass);
+                        if (!token.find(".glyphicon").length) {
+                            var span =  token.find(".token-label").eq(-1);
+                            var icon = $(document.createElement("span")).addClass("glyphicon");
+                            if (customClass === "phone-number") {
+                                $(icon).addClass("glyphicon-phone");
+                            } else if(customClass === "contacts") {
+                                $(icon).addClass("glyphicon-user");
+                            } else if(customClass === "groups") {
+                                if (memberCount !== undefined) {
+                                    span.after(helpers.createMemberCountElement(memberCount));
+                                }
+                                $(icon).addClass("glyphicon-th");
+                            } else if(customClass === "smartgroups") {
+                                if (memberCount !== undefined) {
+                                    span.after(helpers.createMemberCountElement(memberCount));
+                                }
+                                $(icon).addClass("glyphicon-globe");
+                            }
+                            span.before(icon);
+                        }
                     }
                 }
                 //Reset to default policy
@@ -334,8 +352,10 @@
                 }
 
                 var customClass = $(event.currentTarget).parents("li").eq(0).attr("class");
-                helpers.createSelectedItem($(event.currentTarget)
-                    .find(".multiselector-list-item-name").text(), customClass, false);
+                var memberCount = $(event.currentTarget).data("member-count");
+
+                helpers.createSelectedItem($(event.currentTarget).find(".multiselector-list-item-name").text(),
+                    customClass, false, memberCount);
 
                 for (var i = multiSelector.results.length - 1; i >= 0; i--) {
                     for (var j = 0; j < multiSelector.results[i].members.length; j++) {
@@ -372,17 +392,19 @@
             },
             addPhoneNumberEvent: function(event) {
                 var input = $(".token-input");
+                var text = event.data.text;
 
                 //Prevents from adding invalid number when input is manipulated by user using mouse actions cut-copy-paste
-                if (input.val().match(constants.regExPatterns.phoneNumber) === null) {
+                if (text.match(constants.regExPatterns.phoneNumber) === null) {
                     $(event.currentTarget).remove();
+                    input.val("");
+                    helpers.hideResults();
                     return;
                 }
 
-                helpers.addPhoneNumber(input.val());
+                helpers.addPhoneNumber(text);
                 $(event.currentTarget).remove();
                 helpers.highlightItem();
-                $(".token-input").focus();
             },
             deleteSelection: function(text) {
                 for (var i = 0; i < multiSelector.selected.length; i++) {
@@ -568,10 +590,13 @@
                 }
                 customContact.customCssClass = customCssClass;
                 selected.push(customContact);
-                helpers.createSelectedItem(customContact.name, customCssClass, true);
-                $(".token-input").val("").focus();
-                $(".multiselector-results").addClass("hidden");
-                return true;
+                if (helpers.createSelectedItem(customContact.name, customCssClass, true)) {
+                    $(".token-input").val("").focus();
+                    helpers.hideResults();
+                    helpers.updateInputWidth();
+                    return true;
+                }
+                return false;
             },
             setAntiduplicateSelectionPolicy: function(enable) {
                 if (enable) {
@@ -719,10 +744,13 @@
                 if (duplicatePolicy) {
                     duplicatePolicy(e);
                 }
+                helpers.updateInputWidth();
             }).on("tokenfield:removetoken", function(e) {
                 helpers.deleteSelection(e.token.value);
+                helpers.updateInputWidth();
             }).tokenfield({
-                minWidth: 0
+                minWidth: 0,
+                allowEditing: false
             });
 
             var handleKeyUp = function(e) {
@@ -745,6 +773,11 @@
                     if ($(".highlight").length) {
                         $(".highlight").eq(0).trigger("click");
                         helpers.highlightItem();
+                        if (!properties.showAll.selected) {
+                            input.val("");
+                            helpers.hideResults();
+                            helpers.updateInputWidth();
+                        }
                     }
                     input.focus();
 
@@ -779,7 +812,7 @@
                         .attr("role", "menuitem")
                         .addClass("add-phone-number")
                         .addClass("multiselector-list-item")
-                        .click(helpers.addPhoneNumberEvent)
+                        .click({ text: text }, helpers.addPhoneNumberEvent)
                         .mouseenter(function(event) {
                             $(".highlight").removeClass("highlight");
                             $(event.currentTarget)
@@ -916,7 +949,8 @@
             selection.after(results);
 
             for (var i in multiSelector.selected) {
-                helpers.createSelectedItem(multiSelector.selected[i].name, multiSelector.selected[i].customCssClass, true);
+                helpers.createSelectedItem(multiSelector.selected[i].name, multiSelector.selected[i].customCssClass,
+                    true, multiSelector.selected[i].memberCount);
             }
             //Handling input
             selection.keyup(handleKeyUp);

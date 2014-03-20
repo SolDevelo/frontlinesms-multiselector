@@ -3,9 +3,6 @@ ul.multiselector-selection {
     margin: 15px 0px 15px 0px;
 }
 
-input.multiselector-input {
-}
-
 li.multiselector-selected-item {
     width: auto;
 }
@@ -87,4 +84,9 @@ li.multiselector-selected-item.selected {
 
 #lastId, div.contactservice-menu {
     margin: 10px;
+}
+
+.token span.badge {
+    padding: 2px;
+    margin-left: 5px;
 }
