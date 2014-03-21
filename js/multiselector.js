@@ -461,6 +461,7 @@
                     resultsUl.append(helpers.createGroupElement(contacts, multiSelector.options.contactItemDisplayLimit, properties.showAll.contacts));
                     resultsUl.append(helpers.createGroupElement(groups, multiSelector.options.groupItemDisplayLimit, properties.showAll.groups));
                     resultsUl.append(helpers.createGroupElement(smartgroups, multiSelector.options.smartgroupItemDisplayLimit, properties.showAll.smartgroups));
+                    resultsUl.scrollTop(0);
                 }
             },
             toggleShowAllButton: function(show) {
@@ -797,7 +798,8 @@
                     if ($(".highlight").length) {
                         $(".highlight").eq(0).trigger("click");
                         helpers.highlightItem();
-                        if (!properties.showAll.selected) {
+                        if (!properties.showAll.contacts && !properties.showAll.groups &&
+                                !properties.showAll.smartgroups && !properties.showAll.selected) {
                             input.val("");
                             helpers.hideResults();
                             helpers.updateInputWidth();
@@ -937,23 +939,12 @@
                                         break;
                                     }
                                 }
-                                multiselectorList.eq(i).removeClass("highlight");
+                                var listItem = multiselectorList.eq(i);
+                                listItem.removeClass("highlight");
                                 multiselectorList.eq(i + direction).addClass("highlight");
-                                var offset = multiselectorList.eq(i + direction).offset().top;
-                                var parentHeight = $('.multiselector-results').height();
-                                var parentScroll = $('.multiselector-results').scrollTop();
-                                if(offset > parentHeight) {
-                                    offset = parentScroll + offset - parentHeight;
-                                    $('.multiselector-results').animate({
-                                        scrollTop: offset
-                                    }, 20);
-                                } else if (offset < 150) {
-                                    offset = parentScroll + offset - 150;
-                                    $('.multiselector-results').animate({
-                                        scrollTop: offset
-                                    }, 20);
-                                }
-                                return;
+                                var parent = $(".multiselector-results");
+                                var parentScroll = parent.scrollTop();
+                                parent.scrollTop(parentScroll + direction * listItem.outerHeight(true));
                             } else if (currentHighlight.hasClass(orderBy[0])) {
                                 if ($(".multiselector-list-item").length) {
                                     index = (index === 0) ? -1 : 0;

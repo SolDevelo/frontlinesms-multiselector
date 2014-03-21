@@ -35,10 +35,10 @@ $(document).ready(function() {
         $("body").prepend($(document.createElement("img")).attr("src", "images/ajax-loader.gif")
             .addClass("img-reload-contactservice"));
 
-        $.getScript(pathToScript, function( data, textStatus, jqxhr ) {
+        $.getScript(pathToScript, function( data, textStatus, jqxhr) {
             ms.contactServiceObject = new ContactService();
             $(".img-reload-contactservice").eq(0).remove();
-        }).fail(function( jqxhr, settings, exception ) {
+        }).fail(function( jqxhr, settings, exception) {
             $(".img-reload-contactservice").eq(0).remove();
             alert(onErrorText);
         });
