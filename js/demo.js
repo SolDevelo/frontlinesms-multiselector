@@ -8,7 +8,11 @@ $(document).ready(function() {
         groupItemDisplayLimit: 1,
         smartgroupItemDisplayLimit: 1,
         objectAdded: function(objectId) {
-            $("#lastId").text("Last added id: " + objectId);
+            $("#lastAddedId").text("Last added id: " + objectId);
+            return objectId;
+        },
+        objectRemoved: function(objectId) {
+            $("#lastRemovedId").text("Last removed id: " + objectId);
             return objectId;
         },
         icons: {

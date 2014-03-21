@@ -8,16 +8,16 @@ $(document).ready(function() {
     test("getFilteredMatches(\"\",\"\") - whole database", function() {
         ms.results = contactService.getFilteredMatches("","");
 
-        equal((helpers.getGroupingByName('Contacts') != null), true, "Found items in contacts");
-        equal((helpers.getGroupingByName('Groups') != null), true, "Found items in groups");
-        equal((helpers.getGroupingByName('Smart Groups') != null), true, "Found items in smartgroups");
+        equal((helpers.getGroupingByName('Contacts') !== null), true, "Found items in contacts");
+        equal((helpers.getGroupingByName('Groups') !== null), true, "Found items in groups");
+        equal((helpers.getGroupingByName('Smart Groups') !== null), true, "Found items in smartgroups");
     });
 
     //2
     test("getFilteredMatches(\"\", \'朴\') - non-latin characters", function() {
         ms.results = contactService.getFilteredMatches("", '朴');
 
-        equal((helpers.getGroupingByName('Contacts') != null), true, "Found contact with 朴 character.");
+        equal((helpers.getGroupingByName('Contacts') !== null), true, "Found contact with 朴 character.");
         equal(helpers.getGroupingByName('Groups'), null, "Not found group with 朴 character.");
         equal(helpers.getGroupingByName('Smart Groups'), null, "Not found smartgroup with 朴 character.");
     });
@@ -26,9 +26,9 @@ $(document).ready(function() {
     test("getFilteredMatches(\"\", \'i\') - latin characters", function() {
         ms.results = contactService.getFilteredMatches("", 'i');
 
-        equal((helpers.getGroupingByName('Contacts') != null), true, "Found contacts with 'i' character.");
-        equal((helpers.getGroupingByName('Groups') != null), true, "Found groups with 'i' character.");
-        equal((helpers.getGroupingByName('Smart Groups') != null), true, "Found smartgroups with 'i' character.");
+        equal((helpers.getGroupingByName('Contacts') !== null), true, "Found contacts with 'i' character.");
+        equal((helpers.getGroupingByName('Groups') !== null), true, "Found groups with 'i' character.");
+        equal((helpers.getGroupingByName('Smart Groups') !== null), true, "Found smartgroups with 'i' character.");
     });
 
     //4
@@ -142,8 +142,17 @@ $(document).ready(function() {
         var callbackResult = ms.options.objectAdded("contact-4");
 
         equal(isAdded, true, "Is addObject(...) working?");
-        equal(callbackResult, "contact-4");
+        equal(callbackResult, "contact-4", "Does objectAdded(...) return a valid result?");
         $(".token").eq(-1).find(".close").trigger("click").trigger("click");
+    });
+
+    //14
+    test("Testing global method removeObject(...)", function() {
+        var callbackResult = ms.options.objectRemoved("110");
+        var isRemoved = ms.removeObject("110");
+
+        equal(isRemoved, true, "Is removeObject(...) working?");
+        equal(callbackResult, "110", "Does objectRemoved(...) return a valid result?");
     });
 
     //Restore defualt value

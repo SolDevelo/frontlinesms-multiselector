@@ -27,9 +27,6 @@ a.multiselector-list-item {
     margin-left: 15px;
 }
 
-span.multiselector-list-item-name {
-}
-
 span.multiselector-list-item-metadata {
     color: gray;
     float: right;
@@ -64,13 +61,7 @@ li.multiselector-selected-item.selected {
     display: none;
 }
 
-.contact li {
-}
-
-.group li {
-}
-
-.input-group-btn {
+.multiselector-selection.input-group-btn {
     position: relative;
     left: 0px;
     top: 0px;
@@ -82,7 +73,7 @@ li.multiselector-selected-item.selected {
     margin-right: 4px;
 }
 
-#lastId, div.contactservice-menu {
+div.contactservice-menu {
     margin: 10px;
 }
 

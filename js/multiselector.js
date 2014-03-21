@@ -276,9 +276,11 @@
                             span.before(icon);
                         }
                     }
+                    return true;
                 }
                 //Reset to default policy
                 helpers.setAntiduplicateSelectionPolicy(true);
+                return false;
             },
             createResultsDiv: function() {
                 return $(document.createElement("ul"))
@@ -400,7 +402,7 @@
                     id: number,
                     metadata: number
                 };
-                if (helpers.addCustomContact(numberObject, selected, "phone-number")) {
+                if (helpers.addCustomContact(numberObject, selected, "phone-number") && multiSelector.options.objectAdded) {
                     multiSelector.options.objectAdded(numberObject.id);
                 }
             },
@@ -423,7 +425,7 @@
             deleteSelection: function(text) {
                 for (var i = 0; i < multiSelector.selected.length; i++) {
                     if (text === multiSelector.selected[i].name) {
-                        if (multiSelector.options.objectRemoved === "function") {
+                        if (multiSelector.options.objectRemoved) {
                             multiSelector.options.objectRemoved(multiSelector.selected[i].id);
                         }
                         multiSelector.selected.splice(i, 1);
@@ -676,6 +678,10 @@
                 for (var m = 0; m < results[i].members.length; m++) {
                     var id = results[i].members[m].id;
                     if (id === objectId) {
+                        if (results[i].members[m].disabled === true) {
+                            return false;
+                        }
+
                         var contact = results[i].members[m];
                         helpers.addCustomContact(contact, null, results[i].customCssClass);
                         added = true;
@@ -687,7 +693,7 @@
                 added = true;
             }
 
-            if (added && this.options.objectAdded === "function") {
+            if (added && this.options.objectAdded) {
                 this.options.objectAdded(objectId);
             }
 
@@ -695,14 +701,31 @@
         };
 
         multiSelector.removeObject = function(objectId) {
-            if (multiSelector.options.objectRemoved === "function") {
-                multiSelector.options.objectRemoved(objectId);
+            for (var i = multiSelector.selected.length - 1; i >= 0; i--) {
+                if (multiSelector.selected[i].id === objectId) {
+                    if (multiSelector.options.objectRemoved) {
+                        multiSelector.options.objectRemoved(objectId);
+                    }
+                    $(".token[data-value='" + multiSelector.selected[i].name + "']").remove();
+                    multiSelector.selected.splice(i, 1);
+                    helpers.updateInputWidth();
+                    return true;
+                }
             }
+            return false;
         };
 
-        multiSelector.toggleEnabled = function(objectId) {
-
-        };
+        // TODO : Decide if this is necessary, as it seems to be something that should be done in the ContactService itself
+        /*multiSelector.toggleEnabled = function(objectId) {
+            for (var i = 0; i < multiSelector.selected.length; i++) {
+                if (multiSelector.selected[i].id === objectId) {
+                    multiSelector.selected[i].disabled = (multiSelector.selected[i].disabled !== undefined) ?
+                        !multiSelector.selected[i].disabled : true;
+                    return multiSelector.selected[i].disabled;
+                }
+            }
+            return false;
+        };*/
 
         multiSelector.getSelectedCount = function() {
             return this.selected.length;
