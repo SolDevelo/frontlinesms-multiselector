@@ -634,13 +634,15 @@
                         var highlight = $(".highlight");
                         token.addClass("multiselector-selected-item");
                         token.addClass(e.token.customCss);
-                        if (highlight.length && highlight.hasClass("show-all-contacts")) {
+                        if (!highlight.length) {
                             token.remove();
-                        } else if (highlight.length && highlight.hasClass("multiselector-list-item")) {
+                        } else if (highlight.hasClass("show-all-contacts")) {
+                            token.remove();
+                        } else if (highlight.hasClass("multiselector-list-item")) {
                             if (e.token.value !== highlight.find(".multiselector-list-item-name").text()) {
                                 token.remove();
                             }
-                        } else if (highlight.length && !highlight.hasClass("add-phone-number")) {
+                        } else if (!highlight.hasClass("add-phone-number")) {
                             token.remove();
                         }
                     };
