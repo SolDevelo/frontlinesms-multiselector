@@ -106,19 +106,23 @@
                     }
 
                     if (options[key] && options[key].constructor === Object) {
-                        for (var key2 in defaultOptions[key]) {
-                            if (!defaultOptions[key].hasOwnProperty(key2)) {
-                                continue;
-                            }
-
-                            if (!options[key].hasOwnProperty(key2)) {
-                                options[key][key2] = defaultOptions[key][key2];
-                            }
-                        }
+                        options[key] = helpers.parseOptionsObjects(options[key], defaultOptions[key])
                     }
                 }
 
                 return options;
+            },
+            parseOptionsObjects: function(optionsObject, defaultOptionsObject) {
+                for (var key in defaultOptionsObject) {
+                    if (!defaultOptionsObject.hasOwnProperty(key)) {
+                        continue;
+                    }
+
+                    if (!optionsObject.hasOwnProperty(key)) {
+                        optionsObject[key] = defaultOptionsObject[key];
+                    }
+                }
+                return optionsObject;
             },
             getGroupingByName: function(name) {
                 var grouping = null;
@@ -159,7 +163,7 @@
                     childElement.attr("title", helpers.getMessage("common.item.select.selected"));
                 }
 
-                if (child.disabled !== undefined && child.disabled === true) {
+                if (child.disabled === true) {
                     childElement.addClass("disabled");
                     childElement.attr("title", helpers.getMessage("common.group.select.disabled"));
                     return childElement;
@@ -195,6 +199,13 @@
                     groupNameElement.prepend(icon);
                 }
 
+                helpers.createGroupedResults(showAll, listItem, group, limit);
+
+                listItem.append(divider);
+
+                return listItem;
+            },
+            createGroupedResults: function(showAll, listItem, group, limit) {
                 var i;
 
                 if (showAll) {
@@ -209,9 +220,6 @@
                         listItem.append(helpers.createItemLimitInfoElement(i, group.members.length));
                     }
                 }
-                listItem.append(divider);
-
-                return listItem;
             },
             createInput: function() {
                 return $(document.createElement("input"))
@@ -251,36 +259,40 @@
                     helpers.setAntiduplicateSelectionPolicy(true);
                 }
                 var exists = $(".tokenfield").find(".multiselector-selected-item[data-value='" + text + "']").length;
-                if (!exists) {
-                    $(".multiselector-input").eq(0).tokenfield('createToken', {
-                        value: text,
-                        label: text
-                    });
-                    var token = $(".token").eq(-1);
-                    if (token.attr("data-value") === text) {
-                        if (!token.eq(-1).hasClass("multiselector-selected-item")) {
-                            token.addClass("multiselector-selected-item");
-                        }
-                        token.addClass(customClass);
-                        if (!token.find(".glyphicon").length) {
-                            var span =  token.find(".token-label").eq(-1);
-                            var icon = $(document.createElement("span"))
-                                .addClass(multiSelector.options.icons[customClass]);
 
-                            if (customClass === "groups" || customClass === "smartgroups") {
-                                if (memberCount !== undefined) {
-                                    span.after(helpers.createMemberCountElement(memberCount));
-                                }
-                            }
-
-                            span.before(icon);
-                        }
-                    }
-                    return true;
+                if (exists) {
+                    helpers.setAntiduplicateSelectionPolicy(true);
+                    return false;
                 }
-                //Reset to default policy
+
+                $(".multiselector-input").eq(0).tokenfield('createToken', {
+                    value: text,
+                    label: text
+                });
+
+                var token = $(".token").eq(-1);
+
+                if (token.attr("data-value") === text) {
+                    if (!token.eq(-1).hasClass("multiselector-selected-item")) {
+                        token.addClass("multiselector-selected-item");
+                    }
+                    token.addClass(customClass);
+                    if (!token.find(".glyphicon").length) {
+                        var span =  token.find(".token-label").eq(-1);
+                        var icon = $(document.createElement("span"))
+                            .addClass(multiSelector.options.icons[customClass]);
+
+                        if ((customClass === "groups" || customClass === "smartgroups") &&
+                            memberCount !== undefined) {
+
+                            span.after(helpers.createMemberCountElement(memberCount));
+                        }
+
+                        span.before(icon);
+                    }
+                }
                 helpers.setAntiduplicateSelectionPolicy(true);
-                return false;
+                return true;
             },
             createResultsDiv: function() {
                 return $(document.createElement("ul"))
@@ -360,8 +372,8 @@
                 var existingSelection = $(".multiselector-selected-item");
 
                 if (existingSelection !== undefined) {
-                    for (var i = 0; i < existingSelection.length; i++) {
-                        if (existingSelection.eq(i).text() === $(event.currentTarget).find(".multiselector-list-item-name").text()) {
+                    for (var it = 0; it < existingSelection.length; it++) {
+                        if (existingSelection.eq(it).text() === $(event.currentTarget).find(".multiselector-list-item-name").text()) {
                             return;
                         }
                     }
@@ -370,8 +382,11 @@
                 var customClass = $(event.currentTarget).parents("li").eq(0).attr("class");
                 var memberCount = $(event.currentTarget).data("member-count");
 
-                helpers.createSelectedItem($(event.currentTarget).find(".multiselector-list-item-name").text(),
+                var isCreatedItem = helpers.createSelectedItem($(event.currentTarget).find(".multiselector-list-item-name").text(),
                     customClass, false, memberCount);
+                if (!isCreatedItem) {
+                    return;
+                }
 
                 for (var i = multiSelector.results.length - 1; i >= 0; i--) {
                     for (var j = 0; j < multiSelector.results[i].members.length; j++) {
@@ -381,11 +396,7 @@
                             multiSelector.results[i].members.splice(j, 1);
 
                             $(event.currentTarget).remove();
-                            if ($(".show-all-contacts").length) {
-                                helpers.refreshList($(".token-input").val());
-                            } else {
-                                helpers.refreshList("");
-                            }
+
                             helpers.highlightItem();
                             $(".token-input").val("").focus();
                             helpers.toggleShowAllButton(false);
@@ -429,15 +440,17 @@
                             multiSelector.options.objectRemoved(multiSelector.selected[i].id);
                         }
                         multiSelector.selected.splice(i, 1);
-                        if (!$(".multiselector-results").hasClass("hidden")) {
-                            if ($(".show-all-contacts").length) {
-                                helpers.refreshList($(".token-input").val());
-                            } else {
-                                helpers.refreshList("");
-                            }
-                        }
+
                         helpers.updateInputWidth();
-                        return;
+                        break;
+                    }
+                }
+
+                if (!$(".multiselector-results").hasClass("hidden")) {
+                    if ($(".show-all-contacts").length) {
+                        helpers.refreshList($(".token-input").val());
+                    } else {
+                        helpers.refreshList("");
                     }
                 }
             },
@@ -477,18 +490,21 @@
                 }
             },
             showAllContacts: function() {
+                var multiselectorResults = $(".multiselector-results");
+                var showAll = $(".show-all");
+
                 properties.showAll.contacts = true;
                 properties.showAll.groups = true;
                 properties.showAll.smartgroups = true;
                 $('.dropdown-toggle').dropdown('toggle');
-                if (!$(".multiselector-results").hasClass("hidden")) {
-                    $(".multiselector-results").addClass("hidden");
-                    $(".show-all").removeClass("btn-primary");
+                if (!multiselectorResults.hasClass("hidden")) {
+                    multiselectorResults.addClass("hidden");
+                    showAll.removeClass("btn-primary");
                 } else {
                     properties.showAll.selected = true;
-                    $(".show-all").addClass("btn-primary");
+                    showAll.addClass("btn-primary");
                     helpers.refreshList("");
-                    $(".multiselector-results").removeClass("hidden");
+                    multiselectorResults.removeClass("hidden");
                 }
                 $(".token-input").focus();
             },
@@ -508,13 +524,18 @@
             getSelectionByIDs: function(IDs, fillList) {
                 var selected = [];
                 var isAddedToSelection = [];
-                if (IDs && IDs.length) {
-                    var contactBase = multiSelector.contactServiceObject.getAll();
 
-                    if (contactBase) {
-                        for (var i in IDs) {
-                            for (var g in contactBase) {
-                                var found = false;
+                if (!IDs || !IDs.length) {
+                    return selected;
+                }
+
+                var contactBase = multiSelector.contactServiceObject.getAll();
+
+                if (contactBase) {
+                    for (var i = 0; i < IDs.length; i++) {
+                        var found = false;
+                        for (var g in contactBase) {
+                            if (!found) {
                                 for (var m in contactBase[g].members) {
                                     if (IDs[i] === contactBase[g].members[m].id) {
                                         contactBase[g].members[m].customCssClass = contactBase[g].customCssClass;
@@ -524,26 +545,26 @@
                                         break;
                                     }
                                 }
-                                if (found) {
-                                    break;
-                                }
+                            } else {
+                                break;
                             }
                         }
                     }
+                }
 
-                    if (fillList) {
-                        for (var i in IDs) {
-                            if (!isAddedToSelection[i] && IDs[i].match(constants.regExPatterns.phoneNumber)) {
-                                helpers.addPhoneNumber(IDs[i], selected);
-                            }
+                if (fillList) {
+                    for (var j in IDs) {
+                        if (!isAddedToSelection[j] && IDs[j].match(constants.regExPatterns.phoneNumber)) {
+                            helpers.addPhoneNumber(IDs[j], selected);
                         }
                     }
                 }
                 return selected;
             },
             hideResults: function() {
-                if ($(".multiselector-results").length) {
-                    $(".multiselector-results").addClass("hidden");
+                var multiselectorResults = $(".multiselector-results");
+                if (multiselectorResults.length) {
+                    multiselectorResults.addClass("hidden");
                 }
             },
             extendSingleGrouping: function(listElement) {
@@ -567,7 +588,7 @@
             },
             highlightItem: function(lastItem) {
                 var results = $(".multiselector-results").eq(0);
-                var index = (lastItem === true) ? -1 : 0;
+                var index = (lastItem) ? -1 : 0;
                 var element = results.children().eq(index);
 
                 $(".highlight").removeClass("highlight");
@@ -579,43 +600,48 @@
                 element.addClass("highlight");
             },
             addCustomContact: function(customContact, selected, customCssClass) {
-                if (!customContact || !customContact.hasOwnProperty("name") || !customContact.hasOwnProperty("id") ||
-                    !customContact.hasOwnProperty("metadata")) {
-                    return false;
-                }
-                if (!selected) {
-                    selected = multiSelector.selected;
-                }
+                selected = (!selected) ? multiSelector.selected : selected;
 
-                for (var i = 0; i < selected.length; i++) {
-                    if (selected[i].name === customContact.name) {
-                        return false;
+                if (customContact && customContact.hasOwnProperty("name") && customContact.hasOwnProperty("id") &&
+                    customContact.hasOwnProperty("metadata") &&
+                    !helpers.isAlreadySelected(selected, customContact.name)) {
+
+                    customContact.customCssClass = customCssClass;
+                    selected.push(customContact);
+
+                    if (helpers.createSelectedItem(customContact.name, customCssClass, true)) {
+                        $(".token-input").val("").focus();
+                        helpers.hideResults();
+                        helpers.updateInputWidth();
+                        return true;
                     }
                 }
-                customContact.customCssClass = customCssClass;
-                selected.push(customContact);
-                if (helpers.createSelectedItem(customContact.name, customCssClass, true)) {
-                    $(".token-input").val("").focus();
-                    helpers.hideResults();
-                    helpers.updateInputWidth();
-                    return true;
+
+                return false;
+            },
+            isAlreadySelected: function(selectionArray, contactName) {
+                for (var i in selectionArray) {
+                    if (selectionArray[i].name === contactName) {
+                        return true;
+                    }
                 }
                 return false;
             },
             setAntiduplicateSelectionPolicy: function(enable) {
                 if (enable) {
                     duplicatePolicy = function(e) {
-                        $(".token").eq(-1).addClass("multiselector-selected-item");
-                        $(".token").eq(-1).addClass(e.token.customCss);
-                        if ($(".highlight").length && $(".highlight").hasClass("add-phone-number")) {
-                        } else if ($(".highlight").length && $(".highlight").hasClass("show-all-contacts")) {
-                            $(".token").eq(-1).remove();
-                        } else if ($(".highlight").length && $(".highlight").hasClass("multiselector-list-item")) {
-                            if (e.token.value !== $(".highlight").find(".multiselector-list-item-name").text()) {
-                                $(".token").eq(-1).remove();
+                        var token = $(".token").eq(-1);
+                        var highlight = $(".highlight");
+                        token.addClass("multiselector-selected-item");
+                        token.addClass(e.token.customCss);
+                        if (highlight.length && highlight.hasClass("show-all-contacts")) {
+                            token.remove();
+                        } else if (highlight.length && highlight.hasClass("multiselector-list-item")) {
+                            if (e.token.value !== highlight.find(".multiselector-list-item-name").text()) {
+                                token.remove();
                             }
-                        } else {
-                            $(".token").eq(-1).remove();
+                        } else if (highlight.length && !highlight.hasClass("add-phone-number")) {
+                            token.remove();
                         }
                     };
                 } else {
@@ -665,6 +691,11 @@
                 if (textWidth >= inputWidth) {
                     input.width(parentWidth);
                 }
+            },
+            callObjectAdded: function(added, objectId) {
+                if (added && multiSelector.options.objectAdded) {
+                    multiSelector.options.objectAdded(objectId);
+                }
             }
         };
 
@@ -678,14 +709,13 @@
             for (var i = 0; i < results.length && !added; i++) {
                 for (var m = 0; m < results[i].members.length; m++) {
                     var id = results[i].members[m].id;
-                    if (id === objectId) {
-                        if (results[i].members[m].disabled === true) {
-                            return false;
-                        }
-
+                    if (id === objectId && !results[i].members[m].disabled) {
                         var contact = results[i].members[m];
+
                         helpers.addCustomContact(contact, null, results[i].customCssClass);
                         added = true;
+                    } else if (id === objectId && results[i].members[m].disabled) {
+                        return false;
                     }
                 }
             }
@@ -694,9 +724,7 @@
                 added = true;
             }
 
-            if (added && this.options.objectAdded) {
-                this.options.objectAdded(objectId);
-            }
+            helpers.callObjectAdded(added, objectId);
 
             return added;
         };
@@ -750,10 +778,8 @@
             multiSelector.previousText = "";
 
             var resultDiv = $(".multiselector-results");
-            if (resultDiv.length) {
-                if (!resultDiv.hasClass("hidden")) {
-                    resultDiv.addClass("hidden");
-                }
+            if (resultDiv.length && !resultDiv.hasClass("hidden")) {
+                resultDiv.addClass("hidden");
             }
         };
 
@@ -770,6 +796,7 @@
                     duplicatePolicy(e);
                 }
                 helpers.updateInputWidth();
+                helpers.setAntiduplicateSelectionPolicy(true);
             }).on("tokenfield:removetoken", function(e) {
                 helpers.deleteSelection(e.token.value);
                 helpers.updateInputWidth();
@@ -778,61 +805,117 @@
                 allowEditing: false
             });
 
-            var handleKeyUp = function(e) {
-                var keyId = e.keyCode;
-                input = $(".token-input");
-                var text = input.val();
+            var handleTabEscKeys = function() {
+                $(".token-input").val("");
+                if (!results.hasClass("hidden")) {
+                    results.addClass("hidden");
+                    $(".show-all").removeClass("btn-primary");
+                }
+                multiSelector.previousText = "";
+            }
 
-                if (keyId === 13 || keyId === 188) {
-                    // Enter/Return and comma
+            var handleEnterKey = function(text, inputToHandle) {
+                var highlight = $(".highlight");
+                
+                if (text.search(",") >= 0) {
+                    text = text.substring(0, text.search(","));
+                    inputToHandle.val(text);
+                }
 
-                    if (text.search(",") >= 0) {
-                        text = text.substring(0, text.search(","));
-                        input.val(text);
-                    }
-
-                    if ((!text.length && !$(".highlight").length) || $(".multiselector-results").hasClass("hidden")) {
-                        return;
-                    }
-
-                    if ($(".highlight").length) {
-                        $(".highlight").eq(0).trigger("click");
-                        helpers.highlightItem();
-                        if (!properties.showAll.contacts && !properties.showAll.groups &&
-                                !properties.showAll.smartgroups && !properties.showAll.selected) {
-                            input.val("");
-                            helpers.hideResults();
-                            helpers.updateInputWidth();
-                        }
-                    }
-                    input.focus();
-
-                    multiSelector.previousText = "";
-                    return;
-                } else if (keyId === 9) {
-                    //Handling Tab key that works for both web browsers(firefox and chrome)
-                    $(".token-input").val("");
-                    if (!$(".multiselector-results").hasClass("hidden")) {
-                        $(".multiselector-results").addClass("hidden");
-                        $(".show-all").removeClass("btn-primary");
-                    }
-                    return;
-                } else if (keyId === 27 || keyId === 35 ||
-                    keyId === 36 || keyId === 38 || keyId === 40) {
-                    //Escape, Home, End, Arrow Up and Down
-                    //Do nothing because they're handled on key down event
-                    e.preventDefault();
+                if ((!text.length && !highlight.length) || $(".multiselector-results").hasClass("hidden")) {
                     return;
                 }
 
+                if (highlight.length) {
+                    highlight.eq(0).trigger("click");
+                    helpers.highlightItem();
+                    if (!properties.showAll.contacts && !properties.showAll.groups &&
+                        !properties.showAll.smartgroups && !properties.showAll.selected) {
+                        inputToHandle.val("");
+                        helpers.hideResults();
+                        helpers.updateInputWidth();
+                    }
+                }
+                inputToHandle.focus();
+
+                multiSelector.previousText = "";
+            }
+
+            var handleHomeKey = function() {
+                var results = $(".multiselector-results");
+
+                helpers.highlightItem();
+                if (results.length) {
+                    results.eq(0).scrollTop(0);
+                }
+            }
+
+            var handleEndKey = function() {
+                var results = $(".multiselector-results");
+
+                helpers.highlightItem(true);
+                if (results.length) {
+                    results.eq(0).scrollTop(results.eq(0).prop("scrollHeight"));
+                }
+            }
+
+            var handleArrowKeys = function(keyId) {
+                var highlight = $(".highlight");
+                var direction = (keyId === 38) ? -1 : 1;
+                var index = (keyId === 38) ? 0 : -1;
+                var orderBy = (keyId === 38) ? ["show-all-contacts", ".add-phone-number"] :
+                    ["add-phone-number", ".show-all-contacts"];
+
+                if (!highlight.length) {
+                    helpers.highlightItem(keyId === 40);
+                    return;
+                }
+                var currentHighlight = highlight.eq(0);
+
+                if (currentHighlight.hasClass("multiselector-list-item")) {
+                    var multiselectorList = $(".multiselector-list-item");
+                    if (multiselectorList.eq(index).text() === currentHighlight.text()) {
+                        helpers.highlightItem(keyId === 40);
+                        return;
+                    }
+
+                    var i;
+                    for (i = 0; i < multiselectorList.length; i++) {
+                        if (multiselectorList.eq(i).text() === currentHighlight.text()) {
+                            break;
+                        }
+                    }
+                    var listItem = multiselectorList.eq(i);
+                    listItem.removeClass("highlight");
+                    multiselectorList.eq(i + direction).addClass("highlight");
+                    var parent = $(".multiselector-results");
+                    var parentScroll = parent.scrollTop();
+                    parent.scrollTop(parentScroll + direction * listItem.outerHeight(true));
+                } else if (currentHighlight.hasClass(orderBy[0])) {
+                    if ($(".multiselector-list-item").length) {
+                        index = (index === 0) ? -1 : 0;
+                        highlight.removeClass("highlight");
+                        $(".multiselector-list-item").eq(index).addClass("highlight");
+                    } else if ($(orderBy[1]).length) {
+                        highlight.removeClass("highlight");
+                        $(orderBy[1]).addClass("highlight");
+                    }
+                }
+            }
+
+            var onTextChangeRefreshList = function(text) {
                 if (text !== multiSelector.previousText) {
                     helpers.updateAllShowAllProperties(false);
                     $('.dropdown-toggle').dropdown('toggle');
                     $(".show-all").removeClass("btn-primary");
                     helpers.refreshList(text);
                 }
+            }
 
-                if (!$(".add-phone-number").length && text.match(constants.regExPatterns.phoneNumber) !== null) {
+            var tryAddPhoneNumberSection = function(text) {
+                var apn = $(".add-phone-number");
+
+                if (!apn.length && text.match(constants.regExPatterns.phoneNumber) !== null) {
                     var addNumberElement = $(document.createElement("a"))
                         .attr("href", "#")
                         .attr("role", "menuitem")
@@ -853,16 +936,50 @@
                         .append(divider);
 
                     $(".multiselector-results").prepend(li);
-                } else if ($(".add-phone-number").length && text.match(constants.regExPatterns.phoneNumber) === null) {
-                    $(".add-phone-number").eq(0).remove();
+                } else if (apn.length && text.match(constants.regExPatterns.phoneNumber) === null) {
+                    apn.eq(0).remove();
                 }
+            }
 
+            var applyHideResultStatement = function(text) {
                 if (text.length > 0  && results.hasClass('hidden')) {
                     results.removeClass('hidden');
                 } else if (!text.length) {
                     results.addClass('hidden');
                     $(".multiselector-selection button.show-all").removeClass("btn-primary");
                 }
+            }
+
+            var fitInputSize = function(text) {
+                if (text !== "") {
+                    helpers.updateInputWidth();
+                    $(".token-input").focus();
+                }
+            }
+
+            var handleKeyUp = function(e) {
+                var keyId = e.keyCode;
+                input = $(".token-input");
+                var text = input.val();
+
+                if (keyId === 13 || keyId === 188) {
+                    // Enter/Return and comma
+                    handleEnterKey(text, input);
+                    return;
+                } else if (keyId === 9) {
+                    //Handling Tab key that works for both web browsers(firefox and chrome)
+                   handleTabEscKeys();
+                    return;
+                } else if ($.inArray(keyId, [ 27, 35, 36, 38, 40]) !== -1) {
+                    //Escape, Home, End, Arrow Up and Down
+                    //Do nothing because they're handled on key down event
+                    e.preventDefault();
+                    return;
+                }
+
+                onTextChangeRefreshList(text);
+                tryAddPhoneNumberSection(text);
+                applyHideResultStatement(text);
 
                 if (text !== "") {
                     helpers.highlightItem();
@@ -870,10 +987,7 @@
 
                 multiSelector.previousText = text;
 
-                if (text !== "") {
-                    helpers.updateInputWidth();
-                    $(".token-input").focus();
-                }
+                fitInputSize(text);
             };
 
             var handleKeyDown = function(event) {
@@ -881,89 +995,24 @@
 
                 if (keyId === 9 || keyId === 27) {
                     //Tab(works only with Firefox) or escape
-                    $(".token-input").val("");
-                    if (!$(".multiselector-results").hasClass("hidden")) {
-                        $(".multiselector-results").addClass("hidden");
-                        $(".show-all").removeClass("btn-primary");
-                    }
+                    handleTabEscKeys();
                     return;
-                } else if ($(".multiselector-results").hasClass("hidden")) {
-                    if (keyId === 46) {
-                        //Delete
-                        var selection = $(".multiselector-selected-item.selected");
-                        if (selection.length > 0) {
-                            if (selection.prev().length > 0) {
-                                selection.prev().addClass("selected");
-                            } else if (selection.next().length > 0) {
-                                selection.next().addClass("selected");
-                            }
-                            selection.click();
-                        }
-                    }
-                } else {
-                    if (keyId === 36) {
-                        //Home
-                        helpers.highlightItem();
-                        if ($(".multiselector-results").length) {
-                            $(".multiselector-results").eq(0).scrollTop(0);
-                        }
-                    } else if (keyId === 35) {
-                        //End
-                        helpers.highlightItem(true);
-                        var results = $(".multiselector-results");
-                        if (results.length) {
-                            results.eq(0).scrollTop(results.eq(0).prop("scrollHeight"));
-                        }
-                    } else if (keyId === 38 || keyId === 40) {
-                        //Arrow Up or Arrow Down
-                        var direction = (keyId === 38) ? -1 : 1;
-                        var index = (keyId === 38) ? 0 : -1;
-                        var orderBy = (keyId === 38) ? ["show-all-contacts", ".add-phone-number"] :
-                            ["add-phone-number", ".show-all-contacts"];
-
-                        if (!$(".highlight").length) {
-                            helpers.highlightItem(keyId === 40);
-                        } else {
-                            var currentHighlight = $(".highlight").eq(0);
-
-                            if (currentHighlight.hasClass("multiselector-list-item")) {
-                                var multiselectorList = $(".multiselector-list-item");
-                                if (multiselectorList.eq(index).text() === currentHighlight.text()) {
-                                    helpers.highlightItem(keyId === 40);
-                                    return;
-                                }
-
-                                var i;
-                                for (i = 0; i < multiselectorList.length; i++) {
-                                    if (multiselectorList.eq(i).text() === currentHighlight.text()) {
-                                        break;
-                                    }
-                                }
-                                var listItem = multiselectorList.eq(i);
-                                listItem.removeClass("highlight");
-                                multiselectorList.eq(i + direction).addClass("highlight");
-                                var parent = $(".multiselector-results");
-                                var parentScroll = parent.scrollTop();
-                                parent.scrollTop(parentScroll + direction * listItem.outerHeight(true));
-                            } else if (currentHighlight.hasClass(orderBy[0])) {
-                                if ($(".multiselector-list-item").length) {
-                                    index = (index === 0) ? -1 : 0;
-                                    $(".highlight").removeClass("highlight");
-                                    $(".multiselector-list-item").eq(index).addClass("highlight");
-                                } else if ($(orderBy[1]).length) {
-                                    $(".highlight").removeClass("highlight");
-                                    $(orderBy[1]).addClass("highlight");
-                                }
-                            }
-                        }
-                    }
+                } else if (keyId === 36) {
+                    //Home
+                    handleHomeKey();
+                } else if (keyId === 35) {
+                    //End
+                    handleEndKey();
+                } else if (keyId === 38 || keyId === 40) {
+                    //Arrow Up or Arrow Down
+                    handleArrowKeys(keyId);
                 }
             };
 
             currentElement.html(selection);
             selection.after(results);
 
-            for (var i in multiSelector.selected) {
+            for (var i = 0; i < multiSelector.selected.length; i++) {
                 helpers.createSelectedItem(multiSelector.selected[i].name, multiSelector.selected[i].customCssClass,
                     true, multiSelector.selected[i].memberCount);
             }
