@@ -2,7 +2,6 @@ $(document).ready(function() {
     "use strict";
     var defaultResultsValue = ms.results;
     var helpers = ms.getHelperFunctions();
-    var defaultTranslation = ms.translations;
 
     //1
     test("getFilteredMatches(\"\",\"\") - whole database", function() {

@@ -698,9 +698,15 @@
                 }
             },
             callObjectAdded: function(added, objectId) {
+                if (!added && objectId.match(constants.regExPatterns.phoneNumber)) {
+                    helpers.addPhoneNumber(objectId, multiSelector.selected);
+                    added = true;
+                }
+
                 if (added && multiSelector.options.objectAdded) {
                     multiSelector.options.objectAdded(objectId);
                 }
+                return added;
             },
             triggerHighlightedItem: function(input) {
                 var highlight = $(".highlight");
@@ -738,12 +744,8 @@
                     }
                 }
             }
-            if (!added && objectId.match(constants.regExPatterns.phoneNumber)) {
-                helpers.addPhoneNumber(objectId, this.selected);
-                added = true;
-            }
 
-            helpers.callObjectAdded(added, objectId);
+            added = helpers.callObjectAdded(added, objectId);
 
             return added;
         };
@@ -863,8 +865,6 @@
                 var highlight = $(".highlight");
                 var direction = (keyId === 38) ? -1 : 1;
                 var index = (keyId === 38) ? 0 : -1;
-                var orderBy = (keyId === 38) ? ["show-all-contacts", ".add-phone-number"] :
-                    ["add-phone-number", ".show-all-contacts"];
 
                 if (!highlight.length) {
                     helpers.highlightItem(keyId === 40);
@@ -883,11 +883,17 @@
                     var listItem = multiselectorList.eq(i);
 
                     listItem.removeClass("highlight");
-                    multiselectorList.eq(i + direction).addClass("highlight");
+                    listItem = multiselectorList.eq(i + direction).addClass("highlight");
 
                     var parent = $(".multiselector-results");
                     var parentScroll = parent.scrollTop();
-                    parent.scrollTop(parentScroll + direction * listItem.outerHeight(true));
+                    var itemTop = listItem.position().top;
+
+                    if (direction === -1 && itemTop < listItem.outerHeight(true)) {
+                        parent.scrollTop(parentScroll - listItem.outerHeight(true) + itemTop);
+                    } else if (direction === 1 && itemTop > parent.height() - 2*listItem.outerHeight(true)) {
+                        parent.scrollTop(parentScroll + itemTop - parent.height() + 2*listItem.outerHeight(true));
+                    }
                 }
             };
 
