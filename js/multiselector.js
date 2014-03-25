@@ -69,7 +69,7 @@
         var duplicatePolicy = null;
 
         var multiSelector = {
-            version: "0.5-SNAPSHOT",
+            version: "0.5",
             targetElement: currentElement,
             options: {},
             selected: {},
