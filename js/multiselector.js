@@ -62,7 +62,8 @@
                 "contacts": false,
                 "groups": false,
                 "smartgroups": false,
-                "selected": false
+                "selected": false,
+//                "preventEnterKeyEvent": false,
             }
         };
 
@@ -509,6 +510,8 @@
                     helpers.refreshList("");
                     multiselectorResults.removeClass("hidden");
                 }
+                properties.preventEnterKeyEvent = true;
+                helpers.highlightItem();
                 $(".token-input").focus();
             },
             refreshList: function(text) {
@@ -745,9 +748,7 @@
                 }
             }
 
-            added = helpers.callObjectAdded(added, objectId);
-
-            return added;
+            return helpers.callObjectAdded(added, objectId);
         };
 
         multiSelector.removeObject = function(objectId) {
@@ -837,6 +838,11 @@
 
             var handleEnterKey = function(text, inputToHandle) {
                 var highlight = $(".highlight");
+
+                if (properties.preventEnterKeyEvent) {
+                    properties.preventEnterKeyEvent = false;
+                    return;
+                }
 
                 if (text.search(",") >= 0) {
                     text = text.substring(0, text.search(","));
@@ -958,6 +964,9 @@
 
                 if (keyId === 13 || keyId === 188) {
                     // Enter/Return and comma
+                    if (keyId === 188) {
+                        properties.preventEnterKeyEvent = false;
+                    }
                     handleEnterKey(text, input);
                     return;
                 } else if (keyId === 9) {
@@ -1001,6 +1010,7 @@
                     //Arrow Up or Arrow Down
                     handleArrowKeys(keyId);
                 }
+                properties.preventEnterKeyEvent = false;
             };
 
             currentElement.html(selection);
