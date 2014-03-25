@@ -41,7 +41,7 @@
             icons: {
                 "contacts": "fa fa-user",
                 "groups": "fa fa-group",
-                "smartgroups": "fa fa-filter",
+                "smartgroups": "fa fa-cog",
                 "phone-number": "fa fa-mobile-phone"
             }
         };
