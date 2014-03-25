@@ -322,7 +322,7 @@
                         $(".highlight").removeClass("highlight");
                         $(event.currentTarget).addClass("highlight");
                     })
-                    .click(helpers.extendSingleGrouping)
+                    .click(helpers.expandSingleGrouping)
                     .append(span);
             },
             updateAllShowAllProperties: function(setAll) {
@@ -478,7 +478,6 @@
                     resultsUl.append(helpers.createGroupElement(contacts, multiSelector.options.contactItemDisplayLimit, properties.showAll.contacts));
                     resultsUl.append(helpers.createGroupElement(groups, multiSelector.options.groupItemDisplayLimit, properties.showAll.groups));
                     resultsUl.append(helpers.createGroupElement(smartgroups, multiSelector.options.smartgroupItemDisplayLimit, properties.showAll.smartgroups));
-                    resultsUl.scrollTop(0);
                 }
             },
             toggleShowAllButton: function(show) {
@@ -570,10 +569,12 @@
                     multiselectorResults.addClass("hidden");
                 }
             },
-            extendSingleGrouping: function(listElement) {
+            expandSingleGrouping: function(listElement) {
+                var input = $(".token-input");
+
                 if (listElement.hasOwnProperty("currentTarget")) {
                     listElement = $(listElement.currentTarget);
-                    $(".token-input").focus();
+                    input.focus();
                 }
 
                 var parentName = listElement.parents("li").find("span").eq(0).text();
@@ -586,8 +587,26 @@
                     properties.showAll.smartgroups = true;
                 }
 
-                helpers.refreshList($(".token-input").val());
-                helpers.highlightItem();
+                var grouping = listElement.parent().attr("class");
+                var index = listElement.index();
+                var resultsList = $(".multiselector-results");
+                var scrollTop = resultsList.scrollTop();
+
+                helpers.refreshList(input.val());
+                var element = resultsList
+                    .find("li." + grouping)
+                    .children().eq(index)
+                    .addClass("highlight");
+
+                var interval = setInterval(function() {
+                    if (!$(element).hasClass("highlight")) {
+                        $(".highlight").removeClass("highlight");
+                        element.addClass("highlight");
+                        resultsList.scrollTop(scrollTop);
+
+                        clearInterval(interval);
+                    }
+                }, 1);
             },
             highlightItem: function(lastItem) {
                 var results = $(".multiselector-results").eq(0);
@@ -924,8 +943,7 @@
                         .click({ text: text }, helpers.addPhoneNumberEvent)
                         .mouseenter(function(event) {
                             $(".highlight").removeClass("highlight");
-                            $(event.currentTarget)
-                                .addClass("highlight");
+                            $(event.currentTarget).addClass("highlight");
                         })
                         .text(helpers.getMessage("common.item.add.number"));
 
@@ -989,7 +1007,6 @@
                 }
 
                 multiSelector.previousText = text;
-
                 fitInputSize(text);
             };
 
