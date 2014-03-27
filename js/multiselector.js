@@ -62,9 +62,9 @@
                 "contacts": false,
                 "groups": false,
                 "smartgroups": false,
-                "selected": false,
-//                "preventEnterKeyEvent": false,
-            }
+                "selected": false
+            },
+            "preventEnterKeyEvent": false
         };
 
         var duplicatePolicy = null;
@@ -164,7 +164,7 @@
                     childElement.attr("title", helpers.getMessage("common.item.select.selected"));
                 }
 
-                if (child.disabled === true) {
+                if (child.disabled) {
                     childElement.addClass("disabled");
                     childElement.attr("title", helpers.getMessage("common.group.select.disabled"));
                     return childElement;
@@ -886,6 +886,24 @@
                 helpers.highlightItem(true);
             };
 
+            var handleScrolling = function(currentHighlight, direction, index, multiselectorList) {
+                var i = multiselectorList.index(currentHighlight);
+                var listItem = multiselectorList.eq(i);
+
+                listItem.removeClass("highlight");
+                listItem = multiselectorList.eq(i + direction).addClass("highlight");
+
+                var parent = $(".multiselector-results");
+                var parentScroll = parent.scrollTop();
+                var itemTop = listItem.position().top;
+
+                if (direction === -1 && itemTop < listItem.outerHeight(true)) {
+                    parent.scrollTop(parentScroll - listItem.outerHeight(true) + itemTop);
+                } else if (direction === 1 && itemTop > parent.height() - 2 * listItem.outerHeight(true)) {
+                    parent.scrollTop(parentScroll + itemTop - parent.height() + 2 * listItem.outerHeight(true));
+                }
+            };
+
             var handleArrowKeys = function(keyId) {
                 var highlight = $(".highlight");
                 var direction = (keyId === 38) ? -1 : 1;
@@ -903,22 +921,8 @@
                         helpers.highlightItem(keyId === 40);
                         return;
                     }
-
-                    var i = multiselectorList.index(currentHighlight);
-                    var listItem = multiselectorList.eq(i);
-
-                    listItem.removeClass("highlight");
-                    listItem = multiselectorList.eq(i + direction).addClass("highlight");
-
-                    var parent = $(".multiselector-results");
-                    var parentScroll = parent.scrollTop();
-                    var itemTop = listItem.position().top;
-
-                    if (direction === -1 && itemTop < listItem.outerHeight(true)) {
-                        parent.scrollTop(parentScroll - listItem.outerHeight(true) + itemTop);
-                    } else if (direction === 1 && itemTop > parent.height() - 2*listItem.outerHeight(true)) {
-                        parent.scrollTop(parentScroll + itemTop - parent.height() + 2*listItem.outerHeight(true));
-                    }
+                    
+                    handleScrolling(currentHighlight, direction, index, multiselectorList);
                 }
             };
 
