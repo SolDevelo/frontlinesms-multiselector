@@ -27,6 +27,7 @@
     "use strict";
 
     $.fn.multiselect = function(options, translations, defaultSelection, contactServiceObj) {
+        var multiSelector;
         // currently selected element === this
         // assigning it to a variable for use in inline functions
         var currentElement = this;
@@ -124,11 +125,9 @@
                     nextTypeIndex: function() {
                         var i = 0;
                         for (var key in this) {
-                            if (this.hasOwnProperty(key) && !$.isFunction(this[key])) {
-                                if (this[key] < properties.progressbar.totalCount[key] &&
+                            if (this.hasOwnProperty(key) && this[key] < properties.progressbar.totalCount[key] &&
                                     (this[key] < options.displayLimit[key] || properties.showAll[key])) {
-                                    return i;
-                                }
+                                return i;
                             }
                             i++;
                         }
@@ -149,7 +148,7 @@
 
         var duplicatePolicy = null;
 
-        var multiSelector = {
+        multiSelector = {
             version: "0.6-SNAPSHOT",
             targetElement: currentElement,
             options: {},
@@ -273,9 +272,6 @@
                 var icon = $(document.createElement("i"))
                     .addClass(multiSelector.options.icons[name]);
                 groupNameElement.prepend(icon);
-
-                //helpers.createGroupedResults(showAll, listItem, name, limit);
-                //listItem.append(divider);
 
                 return listItem;
             },
@@ -905,23 +901,12 @@
                 var grouping = listElement.parent().attr("class");
                 var index = listElement.index();
                 var resultsList = $(".multiselector-results");
-                var scrollTop = resultsList.scrollTop();
 
                 helpers.refreshList(input.val());
-                var element = resultsList
+                resultsList
                     .find("li." + grouping)
                     .children().eq(index)
                     .addClass("highlight");
-
-                var interval = setInterval(function() {
-                    if (!$(element).hasClass("highlight")) {
-                        $(".highlight").removeClass("highlight");
-                        element.addClass("highlight");
-                        resultsList.scrollTop(scrollTop);
-
-                        clearInterval(interval);
-                    }
-                }, 1);
             },
             highlightItem: function(lastItem) {
                 var results = $(".multiselector-results").eq(0);
@@ -1049,7 +1034,7 @@
                 }
                 return added;
             },
-            triggerHighlightedItem: function(input) {
+            triggerHighlightedItem: function() {
                 var highlight = $(".highlight");
 
                 if (highlight.length) {
@@ -1235,7 +1220,7 @@
                         helpers.highlightItem(keyId === 40);
                         return;
                     }
-                    
+
                     handleScrolling(currentHighlight, direction, index, multiselectorList);
                 }
             };
