@@ -1,6 +1,6 @@
 [submodule "lib/contact_service-master"]
 	path = lib/contact_service-master
-	url = git@github.com:frontlinesms/ContactService.js.git
+	url = https://github.com/frontlinesms/ContactService.js.git
 [submodule "lib/contact_service-10k"]
 	path = lib/contact_service-10k
-	url = git@github.com:frontlinesms/ContactService.js.git
+	url = https://github.com/frontlinesms/ContactService.js.git
