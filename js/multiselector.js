@@ -665,6 +665,7 @@
                 clearInterval(properties.progressbar.interval);
             },
             loadFilteredContacts: function() {
+                helpers.resetLoadedContacts();
                 var results = $(".multiselector-results");
 
                 var contactBase = {
