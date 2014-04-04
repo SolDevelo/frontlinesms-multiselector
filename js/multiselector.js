@@ -1024,7 +1024,7 @@
                     input.width(parentWidth);
                 }
             },
-            callObjectAdded: function(added, objectId) {
+            callObjectAdded: function(added, objectId, disable) {
                 if (!added && objectId.match(constants.regExPatterns.phoneNumber)) {
                     helpers.addPhoneNumber(objectId, multiSelector.selected);
                     added = true;
@@ -1033,6 +1033,14 @@
                 if (added && multiSelector.options.objectAdded) {
                     multiSelector.options.objectAdded(objectId);
                 }
+
+                if (added && disable) {
+                    var token = $(".token").eq(-1);
+                    token.addClass("disabled");
+                    token.find(".close").remove();
+                    token.find(".token-label").addClass("disabled");
+                }
+
                 return added;
             },
             triggerHighlightedItem: function() {
@@ -1048,7 +1056,7 @@
         multiSelector.options = helpers.parseOptions(options, defaultOptions);
         multiSelector.selected = helpers.getSelectionByIDs(defaultSelection, true);
 
-        multiSelector.addObject = function(objectId) {
+        multiSelector.addObject = function(objectId, disabled) {
             var added = false;
             var results = multiSelector.contactServiceObject.getFilteredMatches(helpers.getSelectedIDs(), "");
             // for each grouping
@@ -1066,7 +1074,7 @@
                 }
             }
 
-            return helpers.callObjectAdded(added, objectId);
+            return helpers.callObjectAdded(added, objectId, disabled);
         };
 
         multiSelector.removeObject = function(objectId) {
@@ -1133,12 +1141,27 @@
             var results = helpers.createResultsDiv();
 
             input.on("tokenfield:createtoken", function(e) {
+                var newToken = $(e.relatedTarget);
+                newToken.click(function(e) {
+                    var clickedSelection = $(e.currentTarget);
+                    if (clickedSelection.hasClass("disabled")) {
+                        clickedSelection.removeClass("active");
+                    }
+                });
                 if (duplicatePolicy) {
                     duplicatePolicy(e);
                 }
                 helpers.updateInputWidth();
                 helpers.setAntiduplicateSelectionPolicy(true);
             }).on("tokenfield:removetoken", function(e) {
+                var activeToken = $(".token.active");
+                if (activeToken.length)
+                {
+                    activeToken = activeToken.eq(0);
+                    if (activeToken.hasClass('disabled')) {
+                        activeToken.removeClass("active");
+                    }
+                }
                 helpers.deleteSelection(e.token.value);
                 helpers.updateInputWidth();
             }).tokenfield({
@@ -1242,6 +1265,29 @@
                 }
             };
 
+            var preventLeftDisableSelection = function() {
+                var activeToken = $(".token.active").first();
+                if (activeToken.length && activeToken.hasClass("disabled")) {
+                    activeToken.removeClass("active");
+                    var previous = activeToken.prevAll("div").not("[class*='disabled']").first();
+                    var token = (previous.length) ? previous : activeToken.next();
+                    token.addClass("active");
+                }
+            };
+
+            var preventRightDisableSelection = function() {
+                var activeToken = $(".token.active").first();
+                if (activeToken.length && activeToken.hasClass("disabled")) {
+                    activeToken.removeClass("active");
+                    var next = activeToken.nextAll("div").not("[class*='disabled']").first();
+                    if (next.length) {
+                        next.addClass("active");
+                    } else {
+                        $(".token-input").focus();
+                    }
+                }
+            };
+
             var handleKeyUp = function(e) {
                 var keyId = e.keyCode;
                 input = $(".token-input");
@@ -1263,6 +1309,12 @@
                     //Do nothing because they're handled on key down event
                     e.preventDefault();
                     return;
+                } else if (keyId === 37 || keyId === 8) {
+                    //Left arrow or backspace
+                    preventLeftDisableSelection();
+                } else if (keyId === 39) {
+                    //Right arrow
+                    preventRightDisableSelection();
                 }
 
                 if (properties.lastKeypressTimeout) {
@@ -1272,6 +1324,8 @@
                     onTextChangeRefreshList(text);
                     if (text !== "") {
                         helpers.highlightItem();
+                    } else {
+                        helpers.hideResults();
                     }
 
                     multiSelector.previousText = "";

@@ -98,6 +98,13 @@ div.contactservice-menu {
     margin-left: 5px;
 }
 
+.token.disabled {
+    color: #999999;
+}
+.token-label.disabled {
+    margin-right: 5px;
+}
+
 div.multiselector-loading-container {
     width: 90%;
 }

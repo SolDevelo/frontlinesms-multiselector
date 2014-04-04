@@ -154,6 +154,14 @@ $(document).ready(function() {
         equal(callbackResult, "110", "Does objectRemoved(...) return a valid result?");
     });
 
+    //15
+    test("Testing addObject() with disabled parameter.", function() {
+        var countOfDisabledObjects = $(".token.disabled").length;
+        ms.addObject("123456", true);
+        ms.addObject("contact-1", true);
+        equal($(".token.disabled").length, countOfDisabledObjects + 2, "Check for existence disabled selection(123456, Alice).");
+    });
+
     //Restore defualt value
     ms.results = defaultResultsValue;
 });
