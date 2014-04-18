@@ -112,3 +112,15 @@ div.multiselector-loading-container {
 div.multiselector-progress-bar {
     width: 100%;
 }
+
+.greyer {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    background-color: #cccccc;
+    text-align: center;
+    height: 100%;
+    width: 100%;
+    opacity: 0.4;
+    z-index: 100000;
+}

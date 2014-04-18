@@ -33,25 +33,11 @@
         var currentElement = this;
         var defaultOptions = {
             "minResultsHeight": 300,
-            "displayLimit": {
-                "contacts": 15,
-                "groups": 5,
-                "smartgroups": 5
-            },
-            "displayNames": {
-                "contacts": "Contacts",
-                "groups": "Groups",
-                "smartgroups": "Smart Groups"
-            },
+            "displayLimit": {},
             "objectAdded": null,
             "objectRemoved": null,
             "language": "en_US",
-            "icons": {
-                "contacts": "fa fa-user",
-                "groups": "fa fa-group",
-                "smartgroups": "fa fa-cog",
-                "phone-number": "fa fa-mobile-phone"
-            },
+            "icons": {},
             "contactLoading": {
                 // milliseconds between loading a batch of contacts
                 "intervalMs": 5,
@@ -66,33 +52,48 @@
         };
 
         var properties = {
+            "objectTypes": {},
+            "objectTypeKeys": [],
             "showAll": {
-                "contacts": false,
-                "groups": false,
-                "smartgroups": false,
                 "selected": false,
+                setAll: function(show) {
+                    var self = this;
+                    $.each(this, function(index, value) {
+                        if ($.isFunction(self[index])) {
+                            return true;
+                        }
+                        self[index] = show;
+                    });
+                },
                 all: function() {
-                    return (this.contacts && this.groups && this.smartgroups && this.selected);
+                    var allEnabled = true;
+                    $.each(properties.objectTypeKeys, function(index, value) {
+                        if (this[value] !== true) {
+                            allEnabled = false;
+                            return false;
+                        }
+                    });
+                    return allEnabled;
                 }
             },
             "preventEnterKeyEvent": false,
             "loading": false,
             "lastKeypressTimeout": null,
             "progressbar": {
-                "types": [ "contacts", "groups", "smartgroups" ],
                 "typeIndex": 0,
                 "interval": null,
                 "totalCount": {
-                    "contacts": 0,
-                    "groups": 0,
-                    "smartgroups": 0,
                     reset: function (type) {
                         this[type] = 0;
                     },
                     resetAll: function () {
-                        this.reset("contacts");
-                        this.reset("groups");
-                        this.reset("smartgroups");
+                        var self = this;
+                        $.each(properties.objectTypeKeys, function (index, value) {
+                            if ($.isFunction(value)) {
+                                return true;
+                            }
+                            self.reset(value);
+                        });
                     },
                     update: function() {
                         var keys = Object.keys(this);
@@ -106,56 +107,86 @@
                     }
                 },
                 "loadedCount": {
-                    "contacts": 0,
-                    "groups": 0,
-                    "smartgroups": 0,
-                    reset: function (type) {
+                    reset: function(type) {
                         this[type] = 0;
                     },
-                    resetAll: function () {
-                        this.reset("contacts");
-                        this.reset("groups");
-                        this.reset("smartgroups");
+                    resetAll: function() {
+                        var self = this;
+                        $.each(properties.objectTypeKeys, function(index, value) {
+                            if ($.isFunction(value)) {
+                                return true;
+                            }
+                            self.reset(value);
+                        });
                     },
                     allLoaded: function () {
-                        return (this.contacts === properties.progressbar.totalCount.contacts &&
-                            this.groups === properties.progressbar.totalCount.groups &&
-                            this.smartgroups === properties.progressbar.totalCount.smartgroups);
-                    },
-                    nextTypeIndex: function() {
-                        var i = 0;
-                        for (var key in this) {
-                            if (this.hasOwnProperty(key) && this[key] < properties.progressbar.totalCount[key] &&
-                                    (this[key] < options.displayLimit[key] || properties.showAll[key])) {
-                                return i;
+                        var isLoaded = true;
+                        $.each(properties.objectTypeKeys, function(index, value) {
+                            if (this[value] !== properties.progressbar.totalCount[value]) {
+                                isLoaded = false;
+                                return false;
                             }
-                            i++;
-                        }
-                        return -1;
+                        });
+                        return isLoaded;
+                    },
+                    nextType: function() {
+                        var self = this;
+                        var type = null;
+                        $.each(properties.objectTypeKeys, function(index, value) {
+                            if (self[value] < properties.progressbar.totalCount[value] &&
+                                (self[value] < options.displayLimit[value] || properties.showAll[value])) {
+                                type = value;
+                                return false;
+                            }
+                        });
+                        return type;
                     },
                     totalPercent: function() {
-                        var loaded = this.contacts + this.groups + this.smartgroups;
-                        var total = properties.progressbar.totalCount.contacts +
-                            properties.progressbar.totalCount.groups +
-                            properties.progressbar.totalCount.smartgroups;
+                        var self = this;
+                        var loaded = 0;
+                        var total = 0;
+                        $.each(properties.objectTypeKeys, function(index, value) {
 
+                            loaded += self[value];
+                            total += properties.progressbar.totalCount[value];
+                        });
                         return (total > 0) ? ((loaded / total) * 100).toFixed(0) : 0;
                     }
                 }
             },
-            "mouseOnSelector": false
+            "mouseOnSelector": false,
+            "blockAdding": false,
+            "focusedOnShowAll": false,
+            "preventHidingRefreshedList": false,
+            init: function () {
+                var self = this;
+                self.objectTypes = contactServiceObj.getTypes();
+                $.each(this.objectTypes, function (key, value) {
+                    self.objectTypeKeys.push(key);
+                });
+                self.objectTypeKeys.sort();
+
+                $.each(this.objectTypeKeys, function(index, value) {
+                    self.showAll[value] = false;
+                    self.progressbar.totalCount[value] = 0;
+                    self.progressbar.loadedCount[value] = 0;
+
+                    defaultOptions.icons[value] = "";
+                    defaultOptions.displayLimit[value] = 5;
+                });
+            }
         };
 
+        properties.init();
         var duplicatePolicy = null;
-
         multiSelector = {
-            version: "0.6",
-            targetElement: currentElement,
-            options: {},
-            selected: {},
-            results: {},
-            previousText: "",
-            defaultTranslations: {
+            "version": "0.6",
+            "targetElement": currentElement,
+            "options": {},
+            "selected": {},
+            "results": {},
+            "previousText": "",
+            "defaultTranslations": {
                 "en_US": {
                     "common.item.limit.label": "Showing %s out of %s matches",
                     "common.item.selected": "Selected",
@@ -205,17 +236,6 @@
                 }
                 return optionsObject;
             },
-            getGroupingByName: function(name) {
-                var grouping = null;
-                if (multiSelector.results.length) {
-                    for (var i = 0; i < multiSelector.results.length; i++) {
-                        if (multiSelector.results[i].displayName === name) {
-                            return multiSelector.results[i];
-                        }
-                    }
-                }
-                return grouping;
-            },
             createGroupChildElement: function(child) {
                 if (child === undefined || child === null) {
                     return null;
@@ -263,7 +283,7 @@
                 }
 
                 var groupNameElement = $(document.createElement("span"))
-                    .text(options.displayNames[name])
+                    .text(properties.objectTypes[name].displayName)
                     .addClass("dropdown-header");
                 var listItem = $(document.createElement("li"))
                     .addClass(name)
@@ -307,6 +327,7 @@
                     .text(message)
                     .append(span)
                     .click(function() {
+                        properties.preventHidingRefreshedList = true;
                         properties.mouseOnSelector = true;
                         helpers.showAllContacts();
                     });
@@ -333,9 +354,8 @@
                 } else {
                     helpers.setAntiduplicateSelectionPolicy(true);
                 }
-                var exists = $(".tokenfield").find(".multiselector-selected-item[data-value='" + text + "']").length;
 
-                if (exists) {
+                if ($(".tokenfield").find(".multiselector-selected-item[data-value='" + text + "']").length) {
                     helpers.setAntiduplicateSelectionPolicy(true);
                     return false;
                 }
@@ -346,7 +366,6 @@
                 });
 
                 var token = $(".token").eq(-1);
-
                 if (token.attr("data-value") === text) {
                     if (!token.eq(-1).hasClass("multiselector-selected-item")) {
                         token.addClass("multiselector-selected-item");
@@ -357,13 +376,14 @@
                         var icon = $(document.createElement("span"))
                             .addClass(multiSelector.options.icons[customClass]);
 
-                        if ((customClass === "groups" || customClass === "smartgroups") &&
-                            memberCount !== undefined) {
-
+                        if (memberCount !== undefined) {
                             span.after(helpers.createMemberCountElement(memberCount));
                         }
 
-                        span.before(icon);
+                        if (multiSelector.options.icons.hasOwnProperty(customClass) &&
+                                multiSelector.options.icons[customClass] !== null) {
+                            span.before(icon);
+                        }
                     }
                 }
                 helpers.setAntiduplicateSelectionPolicy(true);
@@ -396,8 +416,7 @@
             },
             updateProgressBarPercent: function(percent) {
                 var progressBar = $(".multiselector-progress-bar");
-                progressBar
-                    .width(percent + "%")
+                progressBar.width(percent + "%")
                     .text(percent + "%");
             },
             createResultsList: function () {
@@ -423,29 +442,6 @@
                 multiSelector.results.length = 0;
                 $(".multiselector-results").empty();
             },
-            createItemLimitInfoElement: function(count, max) {
-                var message = sprintf(helpers.getMessage("common.item.limit.label"), count, max);
-                var span = $(document.createElement("span"))
-                    .addClass("text-info")
-                    .text(message);
-                return $(document.createElement("a"))
-                    .attr("href", "#")
-                    .attr("role", "menuitem")
-                    .addClass("multiselector-item-limit-info")
-                    .addClass("multiselector-list-item")
-                    .mouseenter(function(event) {
-                        $(".highlight").removeClass("highlight");
-                        $(event.currentTarget).addClass("highlight");
-                    })
-                    .click(helpers.expandSingleGrouping)
-                    .append(span);
-            },
-            updateAllShowAllProperties: function(setAll) {
-                properties.showAll.contacts = setAll;
-                properties.showAll.groups = setAll;
-                properties.showAll.smartgroups = setAll;
-                properties.showAll.selected = setAll;
-            },
             createShowAllContacts: function() {
                 var message = helpers.getMessage("common.item.show.all");
                 var a = $(document.createElement("a"))
@@ -455,7 +451,7 @@
                     .addClass("multiselector-list-item")
                     .text(message)
                     .click(function(event) {
-                        helpers.updateAllShowAllProperties(true);
+                        properties.showAll.setAll(true);
                         $(".show-all").addClass("btn-primary");
                         helpers.refreshList("");
                         $(event.currentTarget).remove();
@@ -472,21 +468,27 @@
             },
             getMessage: function(code) {
                 if (multiSelector.translations !== null &&
-                    multiSelector.translations.hasOwnProperty(multiSelector.options.language) &&
-                    multiSelector.translations[multiSelector.options.language].hasOwnProperty(code)) {
+                        multiSelector.translations.hasOwnProperty(multiSelector.options.language) &&
+                        multiSelector.translations[multiSelector.options.language].hasOwnProperty(code)) {
                     return multiSelector.translations[multiSelector.options.language][code];
 
                 } else if (multiSelector.defaultTranslations.hasOwnProperty(multiSelector.options.language) &&
-                    multiSelector.defaultTranslations[multiSelector.options.language].hasOwnProperty(code)) {
-
+                        multiSelector.defaultTranslations[multiSelector.options.language].hasOwnProperty(code)) {
                     return multiSelector.defaultTranslations[multiSelector.options.language][code];
                 }
-
                 return sprintf("[%s]", code);
             },
             addSelectedItem: function(event) {
-                $(".token-input").focus();
+                var tokenInput = $(".token-input");
+                tokenInput.focus();
                 var existingSelection = $(".multiselector-selected-item");
+                if (properties.blockAdding) {
+                    return;
+                }
+
+                if ($(event.currentTarget).hasClass("prevent-actions")) {
+                    return;
+                }
 
                 if (existingSelection !== undefined) {
                     for (var it = 0; it < existingSelection.length; it++) {
@@ -498,31 +500,39 @@
 
                 var customClass = $(event.currentTarget).parents("li").eq(0).attr("class");
                 var memberCount = $(event.currentTarget).data("member-count");
+                var isCreatedItem = helpers.createSelectedItem($(event.currentTarget)
+                    .find(".multiselector-list-item-name").text(), customClass, false, memberCount);
 
-                var isCreatedItem = helpers.createSelectedItem($(event.currentTarget).find(".multiselector-list-item-name").text(),
-                    customClass, false, memberCount);
                 if (!isCreatedItem) {
                     return;
                 }
-
-                helpers.findAndAddObject(event);
+                tokenInput.val("");
+                helpers.updateInputWidth();
+                helpers.preventActionOnResults(function () {
+                    helpers.findAndAddObject($(event.currentTarget));
+                });
             },
-            findAndAddObject: function(event) {
-                for (var i = multiSelector.results.length - 1; i >= 0; i--) {
-                    for (var j = 0; j < multiSelector.results[i].members.length; j++) {
-                        if (multiSelector.results[i].members[j].name === $(event.currentTarget).find(".multiselector-list-item-name").text()) {
-                            var objectId = multiSelector.results[i].members[j].id;
-                            multiSelector.selected.push(multiSelector.results[i].members[j]);
-                            multiSelector.results[i].members.splice(j, 1);
+            findAndAddObject: function(triggeredElement) {
+                for (var i in multiSelector.results) {
+                    if (!multiSelector.results.hasOwnProperty(i)) {
+                        continue;
+                    }
+                    if (multiSelector.results[i].hasOwnProperty("members")) {
+                        for (var j = 0; j < multiSelector.results[i].members.length; j++) {
+                            if (multiSelector.results[i].members[j].name === triggeredElement.find(".multiselector-list-item-name").text()) {
+                                var objectId = multiSelector.results[i].members[j].id;
+                                multiSelector.selected.push(multiSelector.results[i].members[j]);
+                                multiSelector.results[i].members.splice(j, 1);
 
-                            $(event.currentTarget).remove();
+                                triggeredElement.remove();
+                                helpers.highlightItem();
+                                $(".token-input").val("").focus();
+                                helpers.toggleShowAllButton(false);
+                                multiSelector.options.objectAdded(objectId);
+                                helpers.updateInputWidth();
 
-                            helpers.highlightItem();
-                            $(".token-input").val("").focus();
-                            helpers.toggleShowAllButton(false);
-                            multiSelector.options.objectAdded(objectId);
-                            helpers.updateInputWidth();
-                            return;
+                                return;
+                            }
                         }
                     }
                 }
@@ -592,7 +602,7 @@
                 return selectedID.toString();
             },
             toggleShowAllButton: function(show) {
-                helpers.updateAllShowAllProperties(show);
+                properties.showAll.setAll(show);
 
                 var showAllButton = $(".multiselector-selection button.show-all");
                 if (show) {
@@ -605,20 +615,24 @@
                 }
             },
             showAllContacts: function() {
-                var multiselectorResults = $(".multiselector-results-container");
-                var showAll = $(".show-all");
                 $(".token-input").val("").focus();
 
+                var multiselectorResults = $(".multiselector-results-container");
+                var showAll = $(".show-all");
                 $('.dropdown-toggle').dropdown('toggle');
                 if (!multiselectorResults.hasClass("hidden") && showAll.hasClass("btn-primary")) {
-                    helpers.updateAllShowAllProperties(false);
-                    helpers.hideResults();
+                    properties.showAll.setAll(false);
+                    helpers.preventActionOnResults(function() {
+                        helpers.hideResults();
+                    });
                     showAll.removeClass("btn-primary");
                 } else {
-                    helpers.updateAllShowAllProperties(true);
+                    properties.preventHidingRefreshedList = true;
+                    properties.showAll.setAll(true);
                     showAll.addClass("btn-primary");
                     helpers.refreshList("");
                 }
+
                 properties.preventEnterKeyEvent = true;
                 helpers.highlightItem();
             },
@@ -668,47 +682,40 @@
                 helpers.resetLoadedContacts();
                 var results = $(".multiselector-results");
 
-                var contactBase = {
-                    contacts: {},
-                    groups: {},
-                    smartgroups: {}
-                };
                 var text = $(".token-input").val();
                 if (text !== "") {
                     multiSelector.results = multiSelector.contactServiceObject.getFilteredMatches(helpers.getSelectedIDs(), text);
-                    contactBase.contacts = helpers.getGroupingByName(options.displayNames.contacts);
-                    contactBase.groups = helpers.getGroupingByName(options.displayNames.groups);
-                    contactBase.smartgroups = helpers.getGroupingByName(options.displayNames.smartgroups);
-                    properties.progressbar.totalCount.contacts = (contactBase.contacts === null) ? 0 : contactBase.contacts.members.length;
-                    properties.progressbar.totalCount.groups = (contactBase.groups === null) ? 0 : contactBase.groups.members.length;
-                    properties.progressbar.totalCount.smartgroups = (contactBase.smartgroups === null) ? 0 : contactBase.smartgroups.members.length;
-
-                    $.each(properties.progressbar.types, function(index, value) {
-                        if (!contactBase[value]) {
+                    $.each(properties.objectTypeKeys, function(index, value) {
+                        properties.progressbar.totalCount[value] = multiSelector.results[value].members.length;
+                    });
+                    $.each(properties.objectTypeKeys, function(index, value) {
+                        if (!multiSelector.results[value]) {
                             return true;
                         }
 
                         var listElement = $("li." + value);
                         var divider = null;
                         text = $(".token-input").val();
-                        if (!listElement.length) {
-                            divider = $(document.createElement("li"))
-                                .addClass("divider");
-                            listElement = helpers.createGroupElement(value, options.displayLimit[value], false);
-                            listElement.append(divider);
-                            results.append(listElement);
-                        } else {
-                            divider = listElement.find(".divider");
+                        if (multiSelector.results[value].members.length > 0) {
+                            if (!listElement.length) {
+                                divider = $(document.createElement("li"))
+                                    .addClass("divider");
+                                listElement = helpers.createGroupElement(value, options.displayLimit[value]);
+                                listElement.append(divider);
+                                results.append(listElement);
+                            } else {
+                                divider = listElement.find(".divider");
+                            }
                         }
 
-                        for (var i = 0; i < contactBase[value].members.length; i++) {
+                        for (var i = 0; i < multiSelector.results[value].members.length; i++) {
                             if (i === options.displayLimit[value] && !properties.showAll[value]) {
-                                var itemLimitElement = helpers.createItemLimitElement(value, contactBase[value].members.length);
+                                var itemLimitElement = helpers.createItemLimitElement(value, multiSelector.results[value].members.length);
                                 divider.before(itemLimitElement);
                                 break;
                             }
 
-                            var contactObject = contactBase[value].members[i];
+                            var contactObject = multiSelector.results[value].members[i];
                             contactObject.name = contactObject.name.trim();
                             var groupMemberElement = helpers.createGroupChildElement(contactObject);
                             divider.before(groupMemberElement);
@@ -725,24 +732,16 @@
                 $("#multiselector-loading-container").addClass("hidden");
             },
             addToResults: function(objectType, objectData) {
-                var groupingIndex = -1;
-                $.each(multiSelector.results, function(index, element) {
-                    if (element.customCssClass === objectType) {
-                        groupingIndex = index;
-                        return false;
-                    }
-                });
-
-                if (groupingIndex === -1) {
+                if (!multiSelector.results.hasOwnProperty(objectType)) {
                     multiSelector.results.push({
-                        "displayName": options.displayNames[objectType],
-                        "customCssClass": objectType,
+                        "displayName": properties.objectTypes[objectType].displayName,
+                        "customCssClass": properties.objectTypes[objectType].customCssClass,
                         "members": [
                             objectData
                         ]
                     });
                 } else {
-                    multiSelector.results[groupingIndex].members.push(objectData);
+                    multiSelector.results[objectType].members.push(objectData);
                 }
             },
             loadContacts: function(resetAll) {
@@ -769,23 +768,24 @@
                 }
 
                 properties.progressbar.interval = setInterval(function () {
-                    var typeIndex = properties.progressbar.loadedCount.nextTypeIndex();
-                    if (typeIndex === -1) {
+                    var type = properties.progressbar.loadedCount.nextType();
+                    if (type === null) {
                         clearInterval(properties.progressbar.interval);
                         return;
                     }
 
-                    var type = properties.progressbar.types[typeIndex];
                     var listElement = $("li." + type);
                     var divider = null;
-                    if (!listElement.length) {
-                        divider = $(document.createElement("li"))
-                            .addClass("divider");
-                        listElement = helpers.createGroupElement(type, options.displayLimit[type], true);
-                        listElement.append(divider);
-                        results.append(listElement);
-                    } else {
-                        divider = listElement.find(".divider");
+                    if (properties.progressbar.totalCount[type] > 0) {
+                        if (!listElement.length) {
+                            divider = $(document.createElement("li"))
+                                .addClass("divider");
+                            listElement = helpers.createGroupElement(type, options.displayLimit[type]);
+                            listElement.append(divider);
+                            results.append(listElement);
+                        } else {
+                            divider = listElement.find(".divider");
+                        }
                     }
 
                     for (var i = 0; i < options.contactLoading.batchSize; i++) {
@@ -793,12 +793,13 @@
                             break;
                         }
 
-                        var contactObject = multiSelector.contactServiceObject.getObject(
-                            type, properties.progressbar.loadedCount[type]);
-                        contactObject.name = contactObject.name.trim();
-                        helpers.addToResults(type, contactObject);
-                        var groupMemberElement = helpers.createGroupChildElement(contactObject);
-                        divider.before(groupMemberElement);
+                        var contactObject = multiSelector.results[type].members[properties.progressbar.loadedCount[type]];
+                        if (contactObject !== undefined) {
+                            contactObject.name = contactObject.name.trim();
+                            helpers.addToResults(type, contactObject);
+                            var groupMemberElement = helpers.createGroupChildElement(contactObject);
+                            divider.before(groupMemberElement);
+                        }
                         properties.progressbar.loadedCount[type]++;
                         helpers.updateProgressBarPercent(properties.progressbar.loadedCount.totalPercent());
                     }
@@ -807,7 +808,7 @@
                         helpers.updateProgressBarPercent(100);
                         clearInterval(properties.progressbar.interval);
                     }
-                }, options.contactLoading.intervalMs);
+                }, multiSelector.options.contactLoading.intervalMs);
             },
             refreshList: function(text) {
                 if ((text === undefined || text === "") && !properties.showAll.selected) {
@@ -827,6 +828,7 @@
                 }, 100);
 
                 if (text === "") {
+                    multiSelector.results = multiSelector.contactServiceObject.getAll();
                     helpers.loadContacts(true);
                 } else {
                     helpers.loadFilteredContacts();
@@ -890,24 +892,65 @@
                 }
 
                 var parentName = listElement.parents("li").find("span").eq(0).text();
+                var types = properties.objectTypes;
 
-                if(parentName === options.displayNames.contacts) {
-                    properties.showAll.contacts = true;
-                } else if(parentName === options.displayNames.groups) {
-                    properties.showAll.groups = true;
-                } else if(parentName === options.displayNames.smartgroups) {
-                    properties.showAll.smartgroups = true;
+                var key = null;
+                for(key in types) {
+                    if (!types.hasOwnProperty(key)) {
+                        continue;
+                    }
+                    if (parentName === types[key].displayName) {
+                        properties.showAll[key] = true;
+                        break;
+                    }
                 }
 
                 var grouping = listElement.parent().attr("class");
                 var index = listElement.index();
                 var resultsList = $(".multiselector-results");
+                properties.mouseOnSelector = true;
 
-                helpers.refreshList(input.val());
-                resultsList
-                    .find("li." + grouping)
-                    .children().eq(index)
-                    .addClass("highlight");
+                helpers.preventActionOnResults(function() {
+                    helpers.refreshList($(".token-input").val());
+                    resultsList.find("li." + grouping)
+                        .children().eq(index)
+                        .addClass("highlight");
+                    properties.mouseOnSelector = false;
+                });
+            },
+            preventActionOnResults: function(codeToExecute, keepProgressbar) {
+                var loadingContainer = $(".multiselector-loading-container").removeClass("hidden");
+                var progressBar = loadingContainer.find(".progress");
+                if (!keepProgressbar) {
+                    progressBar.addClass("hidden");
+                }
+                var resultsContainer = $(".multiselector-results-container");
+
+                var grey = $(document.createElement("div")).addClass("greyer");
+                resultsContainer.append(grey);
+                grey.height(resultsContainer.outerHeight());
+
+                var interval = setInterval(function() {
+                    if ($(".greyer").length) {
+                        clearInterval(interval);
+                        var start = new Date();
+
+                        codeToExecute();
+
+                        if (!keepProgressbar) {
+                            progressBar.removeClass("hidden");
+                        }
+                        grey.remove();
+                        loadingContainer.addClass("hidden");
+                        properties.blockAdding = true;
+
+                        if ((new Date()) - start > 0) {
+                            setTimeout(function() {
+                                properties.blockAdding = false;
+                            }, ((new Date()) - start)/2.0);
+                        }
+                    }
+                }, 100);
             },
             highlightItem: function(lastItem) {
                 var results = $(".multiselector-results").eq(0);
@@ -1047,8 +1090,15 @@
                 var highlight = $(".highlight");
 
                 if (highlight.length) {
-                    highlight.eq(0).trigger("click");
-                    helpers.updateInputWidth();
+                    if (highlight.hasClass("multiselector-item-limit-info")) {
+                        helpers.expandSingleGrouping(highlight.eq(0));
+                    } else if (highlight.hasClass("show-all-contacts") || highlight.hasClass("add-phone-number")) {
+                        highlight.eq(0).trigger("click");
+                    } else {
+                        var fakeEvent = {currentTarget: highlight.eq(0)};
+                        helpers.addSelectedItem(fakeEvent);
+                        helpers.updateInputWidth();
+                    }
                 }
             }
         };
@@ -1059,17 +1109,24 @@
         multiSelector.addObject = function(objectId, disabled) {
             var added = false;
             var results = multiSelector.contactServiceObject.getFilteredMatches(helpers.getSelectedIDs(), "");
-            // for each grouping
-            for (var i = 0; i < results.length && !added; i++) {
-                for (var m = 0; m < results[i].members.length; m++) {
-                    var id = results[i].members[m].id;
-                    if (id === objectId && !results[i].members[m].disabled) {
-                        var contact = results[i].members[m];
 
-                        helpers.addCustomContact(contact, null, results[i].customCssClass);
-                        added = true;
-                    } else if (id === objectId && results[i].members[m].disabled) {
-                        return false;
+            // for each grouping
+            for (var i in results) {
+                if (!results.hasOwnProperty(i)) {
+                    continue;
+                }
+                if (results[i].hasOwnProperty("members") && !added) {
+                    for (var m = 0; m < results[i].members.length; m++) {
+                        var id = results[i].members[m].id;
+
+                        if (id === objectId && !results[i].members[m].disabled) {
+                            var contact = results[i].members[m];
+
+                            helpers.addCustomContact(contact, null, results[i].customCssClass);
+                            added = true;
+                        } else if (id === objectId && results[i].members[m].disabled) {
+                            return false;
+                        }
                     }
                 }
             }
@@ -1092,18 +1149,6 @@
             return false;
         };
 
-        // TODO : Decide if this is necessary, as it seems to be something that should be done in the ContactService itself
-        /*multiSelector.toggleEnabled = function(objectId) {
-            for (var i = 0; i < multiSelector.selected.length; i++) {
-                if (multiSelector.selected[i].id === objectId) {
-                    multiSelector.selected[i].disabled = (multiSelector.selected[i].disabled !== undefined) ?
-                        !multiSelector.selected[i].disabled : true;
-                    return multiSelector.selected[i].disabled;
-                }
-            }
-            return false;
-        };*/
-
         multiSelector.getSelectedCount = function() {
             return this.selected.length;
         };
@@ -1112,7 +1157,7 @@
             return this.selected;
         };
 
-        //Make public getGroupingByName()
+        //Make public helper functions
         multiSelector.getHelperFunctions = function() {
             return helpers;
         };
@@ -1170,11 +1215,14 @@
             });
 
             var handleTabEscKeys = function() {
+                properties.preventHidingRefreshedList = false;
                 $(".token-input").val("");
-                if (!results.hasClass("hidden")) {
-                    helpers.hideResults();
-                    $(".show-all").removeClass("btn-primary");
-                }
+                helpers.preventActionOnResults(function() {
+                    if (!results.hasClass("hidden") && !properties.preventHidingRefreshedList) {
+                        helpers.hideResults();
+                        $(".show-all").removeClass("btn-primary");
+                    }
+                });
                 multiSelector.previousText = "";
             };
 
@@ -1251,7 +1299,7 @@
 
             var onTextChangeRefreshList = function(text) {
                 if (text !== multiSelector.previousText) {
-                    helpers.updateAllShowAllProperties(false);
+                    properties.showAll.setAll(false);
                     $('.dropdown-toggle').dropdown('toggle');
                     $(".show-all").removeClass("btn-primary");
                     helpers.refreshList(text);
@@ -1292,6 +1340,7 @@
                 var keyId = e.keyCode;
                 input = $(".token-input");
                 var text = input.val();
+                properties.blockAdding = false;
 
                 if (keyId === 13 || keyId === 188) {
                     // Enter/Return and comma
@@ -1299,10 +1348,13 @@
                         properties.preventEnterKeyEvent = false;
                     }
                     handleEnterKey(text, input);
+                    if (properties.preventEnterKeyEvent) {
+                        properties.preventEnterKeyEvent = true;
+                    }
                     return;
                 } else if (keyId === 9) {
                     //Handling Tab key that works for both web browsers(firefox and chrome)
-                   handleTabEscKeys();
+                    handleTabEscKeys();
                     return;
                 } else if ($.inArray(keyId, [ 27, 35, 36, 38, 40 ]) !== -1) {
                     //Escape, Home, End, Arrow Up and Down
@@ -1324,8 +1376,6 @@
                     onTextChangeRefreshList(text);
                     if (text !== "") {
                         helpers.highlightItem();
-                    } else {
-                        helpers.hideResults();
                     }
 
                     multiSelector.previousText = "";
@@ -1336,7 +1386,7 @@
             var handleKeyDown = function(event) {
                 var keyId = event.keyCode;
 
-                if (keyId === 9 || keyId === 27) {
+                if (keyId === 27) {
                     //Tab(works only with Firefox) or escape
                     handleTabEscKeys();
                     return;
@@ -1376,6 +1426,13 @@
                     properties.mouseOnSelector = true;
                 }).mouseleave(function() {
                     properties.mouseOnSelector = false;
+                });
+
+            $(".input-group-btn")
+                .focusin(function() {
+                    properties.focusedOnShowAll = true;
+                }).focusout(function() {
+                    properties.focusedOnShowAll = false;
                 });
 
             $(".token-input").focusout(function () {

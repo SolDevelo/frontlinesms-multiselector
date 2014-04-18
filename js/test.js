@@ -7,27 +7,27 @@ $(document).ready(function() {
     test("getFilteredMatches(\"\",\"\") - whole database", function() {
         ms.results = contactService.getFilteredMatches("","");
 
-        equal((helpers.getGroupingByName('Contacts') !== null), true, "Found items in contacts");
-        equal((helpers.getGroupingByName('Groups') !== null), true, "Found items in groups");
-        equal((helpers.getGroupingByName('Smart Groups') !== null), true, "Found items in smartgroups");
+        equal((ms.results["contacts"].members.length > 0), true, "Found items in contacts");
+        equal((ms.results["groups"].members.length > 0), true, "Found items in groups");
+        equal((ms.results["smartgroups"].members.length > 0), true, "Found items in smartgroups");
     });
 
     //2
     test("getFilteredMatches(\"\", \'朴\') - non-latin characters", function() {
         ms.results = contactService.getFilteredMatches("", '朴');
 
-        equal((helpers.getGroupingByName('Contacts') !== null), true, "Found contact with 朴 character.");
-        equal(helpers.getGroupingByName('Groups'), null, "Not found group with 朴 character.");
-        equal(helpers.getGroupingByName('Smart Groups'), null, "Not found smartgroup with 朴 character.");
+        equal((ms.results["contacts"].members.length > 0), true, "Found contact with 朴 character.");
+        equal((ms.results["groups"].members.length > 0), false, "Found groups with 朴 character.");
+        equal((ms.results["smartgroups"].members.length > 0), false, "Found smartgroups with 朴 character.");
     });
 
     //3
     test("getFilteredMatches(\"\", \'i\') - latin characters", function() {
         ms.results = contactService.getFilteredMatches("", 'i');
 
-        equal((helpers.getGroupingByName('Contacts') !== null), true, "Found contacts with 'i' character.");
-        equal((helpers.getGroupingByName('Groups') !== null), true, "Found groups with 'i' character.");
-        equal((helpers.getGroupingByName('Smart Groups') !== null), true, "Found smartgroups with 'i' character.");
+        equal((ms.results["contacts"].members.length > 0), true, "Found contacts with 'i' character.");
+        equal((ms.results["groups"].members.length > 0), true, "Found groups with 'i' character.");
+        equal((ms.results["smartgroups"].members.length > 0), true, "Found smartgroups with 'i' character.");
     });
 
     //4
@@ -39,7 +39,7 @@ $(document).ready(function() {
     //5
     test("createGroupElement('contacts')", function() {
         ms.results = contactService.getFilteredMatches("", 'i');
-        var createdGroupElement = helpers.createGroupElement(helpers.getGroupingByName('Contacts'), 4);
+        var createdGroupElement = helpers.createGroupElement("contacts", 4);
 
         equal(createdGroupElement[0].nodeName, "LI", "Proper node used");
     });

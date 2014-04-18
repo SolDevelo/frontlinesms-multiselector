@@ -61,7 +61,10 @@ $(document).ready(function() {
             return objectId;
         },
         "icons": {
-            "contacts": "fa fa-user"
+            "contacts": "fa fa-user",
+            "groups": "fa fa-group",
+            "smartgroups": "fa fa-cog",
+            "phone-number": "fa fa-mobile-phone"
         }
     };
     var translations = {
