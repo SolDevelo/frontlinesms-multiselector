@@ -1229,6 +1229,10 @@
             var handleEnterKey = function(text, inputToHandle) {
                 var highlight = $(".highlight");
 
+                if (highlight.length && highlight.hasClass("disabled")) {
+                    return;
+                }
+
                 if (properties.preventEnterKeyEvent) {
                     properties.preventEnterKeyEvent = false;
                     return;
