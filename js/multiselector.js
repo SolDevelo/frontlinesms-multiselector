@@ -1023,20 +1023,23 @@
                     duplicatePolicy = null;
                 }
             },
-            calculateStringWidth: function(str) {
-                var body = $("body");
-                var font = body.css("font-family");
-                var str_object = $(document.createElement("div")).css({
-                    "position": "absolute",
-                    "float": "left",
-                    "white-space": "nowrap",
-                    "visibility": "hidden",
-                    "font-family": font
-                }).text(str).appendTo(body);
-                var str_width = str_object.width();
-                str_object.remove();
-                return str_width;
-            },
+            calculateStringWidth : function(str) {
+				var body = $("body");
+				var font = body.css("font-family");
+				var str_object = $(document.createElement("div")).css({
+					"position" : "absolute",
+					"float" : "left",
+					"white-space" : "nowrap",
+					"visibility" : "hidden",
+					"font-family" : font
+				});
+				
+				str_object.text(str);
+				str_object.appendTo(body);
+				var str_width = str_object.width();
+				str_object.remove();
+				return str_width;				
+			},
             getLastTokenLineWidth: function() {
                 var wrapperWidth = $(".tokenfield").width();
                 var width = 0;
