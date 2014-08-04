@@ -72,7 +72,7 @@ $(document).ready(function() {
     //8
     test("createSelectionList(\"x\")", function() {
         var selectionList = helpers.createSelectionList("x");
-        equal(selectionList.html(), "<div class=\"input-group\">x<div class=\"input-group-btn\"></div></div>", "Proper class member and value");
+        equal(selectionList.html(), "<div class=\"input-group\">x<div class=\"input-group-btn input-group-btn-first\"></div></div>", "Proper class member and value");
         equal(selectionList[0].nodeName, "UL", "Proper node used");
     });
 

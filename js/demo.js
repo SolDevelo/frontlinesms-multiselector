@@ -75,7 +75,8 @@ $(document).ready(function() {
     };
     var preloadedIDs = ["contact-6", "contact-10", "110", "+48987654321", "smartgroup-2"];
 
-    ms = $("div#container").multiselect(options, translations, preloadedIDs, contactService);
+    ms = $("div#first").multiselect(options, translations, preloadedIDs, contactService, "first");
+    $("div#second").multiselect(options, translations, [], contactService, "second");
 
     var changeScript = function(pathToScript, onErrorText){
         ms.deepClean();
