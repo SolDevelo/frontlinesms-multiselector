@@ -537,15 +537,15 @@
                     }
                 }
             },
-            addPhoneNumber: function(number, selected) {
+            addPhoneNumber: function(number, selected, dontUpdate) {
                 var numberObject = {
                     name: number,
                     id: number,
                     metadata: number
                 };
-                if (helpers.addCustomContact(numberObject, selected, "phone-number") &&
+                if (helpers.addCustomContact(numberObject, selected, "phone-number") && !dontUpdate &&
                         multiSelector.options.objectAdded && $.isFunction(multiSelector.options.objectAdded)) {
-                    multiSelector.options.objectAdded(numberObject.id);
+                     multiSelector.options.objectAdded(numberObject.id);
                 } else {
                     helpers.clearList();
                     helpers.hideResults();
@@ -837,7 +837,7 @@
             addSelectedPhoneNumbers: function(IDs, addedToSelectionArray, selected) {
                 $.each(IDs, function(index, id) {
                     if (!addedToSelectionArray[index] && id.match(constants.regExPatterns.phoneNumber)) {
-                        helpers.addPhoneNumber(id, selected);
+                        helpers.addPhoneNumber(id, selected, true);
                     }
                 });
             },
@@ -1415,7 +1415,8 @@
 
             for (var i = 0; i < multiSelector.selected.length; i++) {
                 helpers.createSelectedItem(multiSelector.selected[i].name, multiSelector.selected[i].customCssClass,
-                    true, multiSelector.selected[i].memberCount);
+                    true, multiSelector.selected[i].memberCount);                
+               	multiSelector.options.objectAdded(multiSelector.selected[i].id);
             }
             //Handling input
             selection.keyup(handleKeyUp);
