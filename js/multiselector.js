@@ -480,7 +480,7 @@
                     });
                 var li = $(document.createElement("li"))
                     .append(a);
-                return $(".multiselector-results-"+wrapperId).append(li);
+                return li;
             },
             getMessage: function(code) {
                 if (multiSelector.translations !== null &&
