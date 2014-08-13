@@ -41,6 +41,7 @@
             "objectAdded": null,
             "objectRemoved": null,
             "language": "en_US",
+            "expressionRegex": /^\${.*$/g,
             "icons": {},
             "contactLoading": {
                 // milliseconds between loading a batch of contacts
@@ -199,6 +200,7 @@
                     "common.item.select.selected": "This item is already selected.",
                     "common.group.select.disabled": "This group is disabled and you can not select it.",
                     "common.item.add.number": "Add this phone number",
+                    "common.item.add.expression": "Add this expression",
                     "common.progressbar.label": "Loading, please wait..."
                 }
             },
@@ -551,15 +553,15 @@
                     }
                 }
             },
-            addPhoneNumber: function(number, selected, dontUpdate) {
-                var numberObject = {
-                    name: number,
-                    id: number,
-                    metadata: number
+            addStringLiteral: function(stringLiteral, selected, dontUpdate) {
+                var literalObject = {
+                    name: stringLiteral,
+                    id: stringLiteral,
+                    metadata: stringLiteral
                 };
-                if (helpers.addCustomContact(numberObject, selected, "phone-number") && !dontUpdate &&
+                if (helpers.addCustomContact(literalObject, selected, (stringLiteral.match(options.expressionRegex) === null ? "phone-number" : "expression")) && !dontUpdate &&
                         multiSelector.options.objectAdded && $.isFunction(multiSelector.options.objectAdded)) {
-                     multiSelector.options.objectAdded(numberObject.id);
+                     multiSelector.options.objectAdded(literalObject.id);
                 } else {
                     helpers.clearList();
                     helpers.hideResults();
@@ -567,19 +569,19 @@
                 }
                 clearTimeout(properties.lastKeypressTimeout);
             },
-            addPhoneNumberEvent: function(event) {
+            addStringLiteralEvent: function(event) {
                 var input = $("ul.multiselector-selection-"+wrapperId).find(".token-input");
                 var text = input.val();
 
                 //Prevents from adding invalid number when input is manipulated by user using mouse actions cut-copy-paste
-                if (text.match(constants.regExPatterns.phoneNumber) === null) {
+                if ((text.match(constants.regExPatterns.phoneNumber) === null) && (text.match(options.expressionRegex) === null)) {
                     $(event.currentTarget).remove();
                     input.val("");
                     helpers.hideResults();
                     return;
                 }
 
-                helpers.addPhoneNumber(text);
+                helpers.addStringLiteral(text);
                 $(event.currentTarget).remove();
                 helpers.highlightItem();
                 input.val("");
@@ -650,23 +652,23 @@
                 properties.preventEnterKeyEvent = true;
                 helpers.highlightItem();
             },
-            tryAddPhoneNumberSection: function () {
+            tryAddStringLiteralSection: function () {
                 var text = $("ul.multiselector-selection-"+wrapperId).find(".token-input").val();
-                var apn = $(".add-phone-number");
+                var addStringLiteral = $(".add-string-literal");
 
-                if (!apn.length && text.match(constants.regExPatterns.phoneNumber) !== null) {
+                if (!addStringLiteral.length && ((text.match(constants.regExPatterns.phoneNumber) !== null) || (text.match(options.expressionRegex) !== null))) {
                     var addNumberElement = $(document.createElement("a"))
                         .attr("href", "#")
                         .attr("role", "menuitem")
-                        .addClass("add-phone-number")
+                        .addClass("add-string-literal")
                         .addClass("multiselector-list-item")
                         .addClass("multiselector-list-item-"+wrapperId)
-                        .click(helpers.addPhoneNumberEvent)
+                        .click(helpers.addStringLiteralEvent)
                         .mouseenter(function (event) {
                             $(".highlight").removeClass("highlight");
                             $(event.currentTarget).addClass("highlight");
                         })
-                        .text(helpers.getMessage("common.item.add.number"));
+                        .text(helpers.getMessage("common.item.add." + (text.match(constants.regExPatterns.phoneNumber) === null ? "expression" : "number")));
 
                     var divider = $(document.createElement("li"))
                         .addClass("divider");
@@ -675,8 +677,8 @@
                         .append(divider);
 
                     $(".multiselector-results-"+wrapperId).prepend(li);
-                } else if (apn.length && text.match(constants.regExPatterns.phoneNumber) === null) {
-                    apn.eq(0).remove();
+                } else if (addStringLiteral.length && ((text.match(constants.regExPatterns.phoneNumber) === null) || (text.match(options.expressionRegex) === null))) {
+                    addStringLiteral.eq(0).remove();
                 }
             },
             applyHideResultStatement: function (text) {
@@ -740,7 +742,7 @@
                     });
                 }
 
-                helpers.tryAddPhoneNumberSection();
+                helpers.tryAddStringLiteralSection();
                 helpers.applyHideResultStatement(text);
                 results.append(helpers.createShowAllContacts());
 
@@ -852,7 +854,7 @@
             addSelectedPhoneNumbers: function(IDs, addedToSelectionArray, selected) {
                 $.each(IDs, function(index, id) {
                     if (!addedToSelectionArray[index] && id.match(constants.regExPatterns.phoneNumber)) {
-                        helpers.addPhoneNumber(id, selected, true);
+                        helpers.addStringLiteral(id, selected, true);
                     }
                 });
             },
@@ -1030,7 +1032,7 @@
                             if (e.token.value !== highlight.find(".multiselector-list-item-name").text()) {
                                 token.remove();
                             }
-                        } else if (!highlight.hasClass("add-phone-number")) {
+                        } else if (!highlight.hasClass("add-string-literal")) {
                             token.remove();
                         }
                     };
@@ -1088,7 +1090,7 @@
             },
             callObjectAdded: function(added, objectId, disable) {
                 if (!added && objectId.match(constants.regExPatterns.phoneNumber)) {
-                    helpers.addPhoneNumber(objectId, multiSelector.selected);
+                    helpers.addStringLiteral(objectId, multiSelector.selected);
                     added = true;
                 }
 
@@ -1111,7 +1113,7 @@
                 if (highlight.length) {
                     if (highlight.hasClass("multiselector-item-limit-info")) {
                         helpers.expandSingleGrouping(highlight.eq(0));
-                    } else if (highlight.hasClass("show-all-contacts") || highlight.hasClass("add-phone-number")) {
+                    } else if (highlight.hasClass("show-all-contacts") || highlight.hasClass("add-string-literal")) {
                         highlight.eq(0).trigger("click");
                     } else {
                         var fakeEvent = {currentTarget: highlight.eq(0)};

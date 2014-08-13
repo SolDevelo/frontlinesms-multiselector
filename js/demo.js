@@ -23,7 +23,8 @@ $(document).ready(function() {
             "contacts": "fa fa-user",
             "groups": "fa fa-group",
             "smartgroups": "fa fa-cog",
-            "phone-number": "fa fa-mobile-phone"
+            "phone-number": "fa fa-mobile-phone",
+            "expression": "fa fa-code"
         },
         "contactLoading": {
             // milliseconds between loading a batch of contacts
@@ -64,7 +65,8 @@ $(document).ready(function() {
             "contacts": "fa fa-user",
             "groups": "fa fa-group",
             "smartgroups": "fa fa-cog",
-            "phone-number": "fa fa-mobile-phone"
+            "phone-number": "fa fa-mobile-phone",
+            "expression": "fa fa-code"
         }
     };
     var translations = {

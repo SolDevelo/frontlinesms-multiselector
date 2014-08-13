@@ -117,7 +117,7 @@ $(document).ready(function() {
     test("Adding phone number to the selection", function() {
         var tokenCount = $(".token").length;
 
-        helpers.addPhoneNumber("+112");
+        helpers.addStringLiteral("+112");
         equal($(".token").length, tokenCount + 1, "Adding number +112");
         equal($(".token").eq(-1).text(), "+112×", "Proper number visible");
         equal(ms.selected.length, tokenCount + 1, "Is added to selected array?");
