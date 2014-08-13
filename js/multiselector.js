@@ -677,7 +677,7 @@
                         .append(divider);
 
                     $(".multiselector-results-"+wrapperId).prepend(li);
-                } else if (addStringLiteral.length && ((text.match(constants.regExPatterns.phoneNumber) === null) || (text.match(options.expressionRegex) === null))) {
+                } else if (addStringLiteral.length && ((text.match(constants.regExPatterns.phoneNumber) === null) && (text.match(options.expressionRegex) === null))) {
                     addStringLiteral.eq(0).remove();
                 }
             },
@@ -1371,6 +1371,9 @@
                     // Enter/Return and comma
                     if (keyId === 188) {
                         properties.preventEnterKeyEvent = false;
+			if(text.match(options.expressionRegex) !== null) {
+			    return;
+			}
                     }
                     handleEnterKey(text, input);
                     if (properties.preventEnterKeyEvent) {
