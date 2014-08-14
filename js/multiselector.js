@@ -1259,7 +1259,7 @@
                     return;
                 }
 
-                if (text.search(",") >= 0) {
+                if (text.search(",") >= 0 && !text.match(options.expressionRegex)) {
                     text = text.substring(0, text.search(","));
                     inputToHandle.val(text);
                 }
