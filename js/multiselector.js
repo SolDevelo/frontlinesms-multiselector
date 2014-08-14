@@ -1372,6 +1372,7 @@
                     if (keyId === 188) {
                         properties.preventEnterKeyEvent = false;
 			if(text.match(options.expressionRegex) !== null) {
+			    input.val(text + ',');
 			    return;
 			}
                     }
