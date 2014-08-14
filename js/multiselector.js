@@ -556,7 +556,7 @@
             addStringLiteral: function(stringLiteral, selected, dontUpdate) {
                 var literalObject = {
                     name: stringLiteral,
-                    id: stringLiteral,
+                    id: (stringLiteral.match(options.expressionRegex) ? escape(stringLiteral) : stringLiteral),
                     metadata: stringLiteral
                 };
                 if (helpers.addCustomContact(literalObject, selected, (stringLiteral.match(options.expressionRegex) === null ? "phone-number" : "expression")) && !dontUpdate &&
