@@ -851,9 +851,9 @@
                     helpers.loadFilteredContacts();
                 }
             },
-            addSelectedPhoneNumbers: function(IDs, addedToSelectionArray, selected) {
+            addSelectedLiterals: function(IDs, addedToSelectionArray, selected) {
                 $.each(IDs, function(index, id) {
-                    if (!addedToSelectionArray[index] && id.match(constants.regExPatterns.phoneNumber)) {
+                    if (!addedToSelectionArray[index] && (id.match(constants.regExPatterns.phoneNumber) || (id.match(options.expressionRegex)))) {
                         helpers.addStringLiteral(id, selected, true);
                     }
                 });
@@ -883,7 +883,7 @@
                 });
 
                 if (fillList) {
-                    helpers.addSelectedPhoneNumbers(IDs, isAddedToSelection, selected);
+                    helpers.addSelectedLiterals(IDs, isAddedToSelection, selected);
                 }
 
                 return selected;
