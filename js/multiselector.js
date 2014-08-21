@@ -1231,6 +1231,7 @@
                 helpers.deleteSelection(e.token.value);
                 helpers.updateInputWidth();
             }).tokenfield({
+		delimiter: false,
                 minWidth: 0,
                 allowEditing: false
             });
@@ -1367,12 +1368,15 @@
                 var text = input.val();
                 properties.blockAdding = false;
 
-                if (keyId === 13 || keyId === 188) {
+                if (keyId === 13 || keyId == 188) {
                     // Enter/Return and comma
                     if (keyId === 188) {
                         properties.preventEnterKeyEvent = false;
 			if(text.match(options.expressionRegex) !== null) {
-			    input.val(text + ',');
+			    return;
+			}
+			if(text.match(constants.regExPatterns.phoneNumber) !== null) {
+			    handleEnterKey(text, input);
 			    return;
 			}
                     }
