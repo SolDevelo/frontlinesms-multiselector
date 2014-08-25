@@ -41,18 +41,22 @@
             "objectAdded": null,
             "objectRemoved": null,
             "language": "en_US",
-            "expressionRegex": /^\${.*$/g,
+		"literals" : [
+			{
+				"name": "expression",
+				"regex":  /^\${.*$/g,
+				"allowCommas" : true
+			},
+			{
+				"name": "phone-number",
+				"regex":  /^\+?\d+$/g
+			}
+		],
             "icons": {},
             "contactLoading": {
                 // milliseconds between loading a batch of contacts
                 "intervalMs": 5,
                 "batchSize": 10
-            }
-        };
-
-        var constants = {
-            "regExPatterns": {
-                "phoneNumber": /^\+?\d+$/g
             }
         };
 
@@ -553,13 +557,23 @@
                     }
                 }
             },
+	    getMatchedLiteralType: function(stringLiteral, propertyToReturn) {
+		var i;
+		propertyToReturn = typeof propertyToReturn !== 'undefined' ? propertyToReturn : 'name';
+		for(i = 0; i < options.literals.length; i ++) {
+			if(stringLiteral.match(options.literals[i].regex)) {
+				return options.literals[i][propertyToReturn];
+			}
+		}
+		return null;
+	    },
             addStringLiteral: function(stringLiteral, selected, dontUpdate) {
                 var literalObject = {
                     name: stringLiteral,
-                    id: (stringLiteral.match(options.expressionRegex) ? escape(stringLiteral) : stringLiteral),
+                    id: escape(stringLiteral),
                     metadata: stringLiteral
                 };
-                if (helpers.addCustomContact(literalObject, selected, (stringLiteral.match(options.expressionRegex) === null ? "phone-number" : "expression")) && !dontUpdate &&
+                if (helpers.addCustomContact(literalObject, selected, helpers.getMatchedLiteralType(stringLiteral)) && !dontUpdate &&
                         multiSelector.options.objectAdded && $.isFunction(multiSelector.options.objectAdded)) {
                      multiSelector.options.objectAdded(literalObject.id);
                 } else {
@@ -574,11 +588,14 @@
                 var text = input.val();
 
                 //Prevents from adding invalid number when input is manipulated by user using mouse actions cut-copy-paste
-                if ((text.match(constants.regExPatterns.phoneNumber) === null) && (text.match(options.expressionRegex) === null)) {
-                    $(event.currentTarget).remove();
-                    input.val("");
-                    helpers.hideResults();
-                    return;
+		if(text.indexOf(',') !== -1 && !helpers.getMatchedLiteralType(text, 'allowCommas')) {
+			text = text.split(',')[0];
+		}
+		if(helpers.getMatchedLiteralType(text) === null) {
+			$(event.currentTarget).remove();
+			input.val("");
+			helpers.hideResults();
+			return;
                 }
 
                 helpers.addStringLiteral(text);
@@ -655,8 +672,10 @@
             tryAddStringLiteralSection: function () {
                 var text = $("ul.multiselector-selection-"+wrapperId).find(".token-input").val();
                 var addStringLiteral = $(".add-string-literal");
+		var matchedLiteral = helpers.getMatchedLiteralType(text);
 
-                if (!addStringLiteral.length && ((text.match(constants.regExPatterns.phoneNumber) !== null) || (text.match(options.expressionRegex) !== null))) {
+                if (!addStringLiteral.length && (matchedLiteral !== null)) {
+		    var translationKey = "common.item.add." + matchedLiteral;
                     var addNumberElement = $(document.createElement("a"))
                         .attr("href", "#")
                         .attr("role", "menuitem")
@@ -668,7 +687,7 @@
                             $(".highlight").removeClass("highlight");
                             $(event.currentTarget).addClass("highlight");
                         })
-                        .text(helpers.getMessage("common.item.add." + (text.match(constants.regExPatterns.phoneNumber) === null ? "expression" : "number")));
+                        .text(helpers.getMessage(translationKey));
 
                     var divider = $(document.createElement("li"))
                         .addClass("divider");
@@ -677,7 +696,7 @@
                         .append(divider);
 
                     $(".multiselector-results-"+wrapperId).prepend(li);
-                } else if (addStringLiteral.length && ((text.match(constants.regExPatterns.phoneNumber) === null) && (text.match(options.expressionRegex) === null))) {
+                } else if (addStringLiteral.length && (matchedLiteral === null)) {
                     addStringLiteral.eq(0).remove();
                 }
             },
@@ -853,7 +872,7 @@
             },
             addSelectedLiterals: function(IDs, addedToSelectionArray, selected) {
                 $.each(IDs, function(index, id) {
-                    if (!addedToSelectionArray[index] && (id.match(constants.regExPatterns.phoneNumber) || (id.match(options.expressionRegex)))) {
+                    if (!addedToSelectionArray[index] && (helpers.getMatchedLiteralType(id))) {
                         helpers.addStringLiteral(id, selected, true);
                     }
                 });
@@ -1089,7 +1108,7 @@
                 }
             },
             callObjectAdded: function(added, objectId, disable) {
-                if (!added && objectId.match(constants.regExPatterns.phoneNumber)) {
+                if (!added && helpers.getMatchedLiteralType(objectId)) {
                     helpers.addStringLiteral(objectId, multiSelector.selected);
                     added = true;
                 }
@@ -1260,11 +1279,6 @@
                     return;
                 }
 
-                if (text.search(",") >= 0 && !text.match(options.expressionRegex)) {
-                    text = text.substring(0, text.search(","));
-                    inputToHandle.val(text);
-                }
-
                 if ((!text.length && !highlight.length) || $(".multiselector-results-"+wrapperId).hasClass("hidden")) {
                     return;
                 }
@@ -1372,10 +1386,13 @@
                     // Enter/Return and comma
                     if (keyId === 188) {
                         properties.preventEnterKeyEvent = false;
-			if(text.match(options.expressionRegex) !== null) {
+			if(helpers.getMatchedLiteralType(text, 'allowCommas')) {
 			    return;
 			}
-			if(text.match(constants.regExPatterns.phoneNumber) !== null) {
+			if(text.indexOf(',') !== -1) {
+				text = text.split(',')[0];
+			}
+			if(helpers.getMatchedLiteralType(text) !== null) {
 			    handleEnterKey(text, input);
 			    return;
 			}
