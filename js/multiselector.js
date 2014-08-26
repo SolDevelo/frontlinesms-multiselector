@@ -203,7 +203,7 @@
                     "common.item.show.all.button": "Show all",
                     "common.item.select.selected": "This item is already selected.",
                     "common.group.select.disabled": "This group is disabled and you can not select it.",
-                    "common.item.add.number": "Add this phone number",
+                    "common.item.add.phone-number": "Add this phone number",
                     "common.item.add.expression": "Add this expression",
                     "common.progressbar.label": "Loading, please wait..."
                 }
