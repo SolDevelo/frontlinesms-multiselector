@@ -570,7 +570,7 @@
             addStringLiteral: function(stringLiteral, selected, dontUpdate) {
                 var literalObject = {
                     name: stringLiteral,
-                    id: escape(stringLiteral),
+                    id: encodeURIComponent(stringLiteral),
                     metadata: stringLiteral
                 };
                 if (helpers.addCustomContact(literalObject, selected, helpers.getMatchedLiteralType(stringLiteral)) && !dontUpdate &&
