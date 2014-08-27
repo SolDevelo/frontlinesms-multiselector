@@ -336,7 +336,8 @@
 
                 return $(document.createElement("button"))
                     .addClass("btn btn-default show-all show-all-"+wrapperId)
-                    .text(message)
+		    .append($(document.createElement('i')).addClass(multiSelector.options.icons.showAll))
+                    .append($(document.createElement('span')).text(message))
                     .append(span)
                     .click(function(event) {
                         properties.preventHidingRefreshedList = true;
