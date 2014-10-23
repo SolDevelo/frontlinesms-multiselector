@@ -34,8 +34,8 @@
         var defaultOptions = {
             "minResultsHeight": 300,
             "displayLimit": {},
-            "objectAdded": null,
-            "objectRemoved": null,
+            objectAdded: function() {},
+            objectRemoved: function() {},
             "language": "en_US",
             "icons": {},
             "contactLoading": {
