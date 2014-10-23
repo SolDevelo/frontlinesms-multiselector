@@ -5,7 +5,7 @@ $(document).ready(function() {
 
     //1
     test("getFilteredMatches(\"\",\"\") - whole database", function() {
-        ms.results = contactService.getFilteredMatches("","");
+        ms.results = contactServiceMaster.getFilteredMatches("","");
 
         equal((ms.results["contacts"].members.length > 0), true, "Found items in contacts");
         equal((ms.results["groups"].members.length > 0), true, "Found items in groups");
@@ -14,7 +14,7 @@ $(document).ready(function() {
 
     //2
     test("getFilteredMatches(\"\", \'朴\') - non-latin characters", function() {
-        ms.results = contactService.getFilteredMatches("", '朴');
+        ms.results = contactServiceMaster.getFilteredMatches("", '朴');
 
         equal((ms.results["contacts"].members.length > 0), true, "Found contact with 朴 character.");
         equal((ms.results["groups"].members.length > 0), false, "Found groups with 朴 character.");
@@ -23,7 +23,7 @@ $(document).ready(function() {
 
     //3
     test("getFilteredMatches(\"\", \'i\') - latin characters", function() {
-        ms.results = contactService.getFilteredMatches("", 'i');
+        ms.results = contactServiceMaster.getFilteredMatches("", 'i');
 
         equal((ms.results["contacts"].members.length > 0), true, "Found contacts with 'i' character.");
         equal((ms.results["groups"].members.length > 0), true, "Found groups with 'i' character.");
@@ -38,7 +38,7 @@ $(document).ready(function() {
 
     //5
     test("createGroupElement('contacts')", function() {
-        ms.results = contactService.getFilteredMatches("", 'i');
+        ms.results = contactServiceMaster.getFilteredMatches("", 'i');
         var createdGroupElement = helpers.createGroupElement("contacts", 4);
 
         equal(createdGroupElement[0].nodeName, "LI", "Proper node used");
@@ -47,7 +47,7 @@ $(document).ready(function() {
     //6
     test("clearList()", function() {
         helpers.clearList();
-        equal($(".multiselector-results").html(), "", "Test clearing matches list");
+        equal($(".multiselector-results1").html(), "", "Test clearing matches list");
     });
 
     //7
@@ -79,7 +79,7 @@ $(document).ready(function() {
     //9
     test("createSelectedItem(\"Annie\", \"contacts\", true)", function() {
         helpers.createSelectedItem("Annie", "contacts", true);
-        var selectedItem = $(".token").eq(-1);
+        var selectedItem = $(".token.multiselector-selected-item1").eq(-1);
         equal(selectedItem.hasClass('contacts'), true, "Proper class member");
         equal($(selectedItem)[0].nodeName, "DIV", "Proper node used");
         equal(selectedItem.text(), "Annie×", "Proper value");
@@ -115,15 +115,15 @@ $(document).ready(function() {
 
     //11
     test("Adding phone number to the selection", function() {
-        var tokenCount = $(".token").length;
+        var tokenCount = $(".token.multiselector-selected-item1").length;
 
         helpers.addPhoneNumber("+112");
-        equal($(".token").length, tokenCount + 1, "Adding number +112");
-        equal($(".token").eq(-1).text(), "+112×", "Proper number visible");
+        equal($(".token.multiselector-selected-item1").length, tokenCount + 1, "Adding number +112");
+        equal($(".token.multiselector-selected-item1").eq(-1).text(), "+112×", "Proper number visible");
         equal(ms.selected.length, tokenCount + 1, "Is added to selected array?");
-        $(".token").eq(-1).find(".close").trigger("click").trigger("click");
+        $(".token.multiselector-selected-item1").eq(-1).find(".close").trigger("click").trigger("click");
         equal(ms.selected.length, tokenCount, "Is deleted from selected array?");
-        equal($(".token").length, tokenCount, "Check if number selection exist");
+        equal($(".token.multiselector-selected-item1").length, tokenCount, "Check if number selection exist");
     });
 
     //12
@@ -132,7 +132,7 @@ $(document).ready(function() {
         var selected = helpers.getSelectionByIDs(exampleIdArray);
 
         equal(selected.length, 3, "Check for size of returned array by getSelectionByIDs(...)");
-        equal(ms.selected.length, $(".token").length, "Check for real size of selected array is equal to count of elements representing selection.");
+        equal(ms.selected.length, $(".token.multiselector-selected-item1").length, "Check for real size of selected array is equal to count of elements representing selection.");
     });
 
     //13

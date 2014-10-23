@@ -1,4 +1,4 @@
-var ms;
+var ms, msBigger;
 
 $(document).ready(function() {
     "use strict";
@@ -75,8 +75,10 @@ $(document).ready(function() {
     };
     var preloadedIDs = ["contact-6", "contact-10", "110", "+48987654321", "smartgroup-2"];
 
-    ms = $("div#container").multiselect(options, translations, preloadedIDs, contactService);
+    ms = $("div#containerMaster").multiselect(options, translations, preloadedIDs, contactServiceMaster, "1");
+    msBigger = $("div#containerBigger").multiselect(options, translations, preloadedIDs, contactService10k, "2");
 
+    /*
     var changeScript = function(pathToScript, onErrorText){
         ms.deepClean();
 
@@ -95,4 +97,5 @@ $(document).ready(function() {
     $("select.choose-contactservice").change(function(e){
         changeScript($(e.currentTarget).val(), "An error has occurred while changing contact database!");
     });
+    */
 });

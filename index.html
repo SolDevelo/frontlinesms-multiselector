@@ -8,6 +8,7 @@
     <script src="lib/bootstrap.min.js"></script>
     <script src="lib/bootstrap-tokenfield.min.js"></script>
     <script src="lib/contact_service-master/ContactService.js"></script>
+    <script src="lib/contact_service-10k/ContactService.js"></script>
     <script src="lib/sprintf.min.js"></script>
     <script src="js/multiselector.js"></script>
     <script src="js/demo.js"></script>
@@ -21,20 +22,18 @@
 </head>
 <body>
 
-<div class="contactservice-menu">
-    <label for="choose-contactservice">Choose ContactService version:</label>
-    <select id="choose-contactservice" class="choose-contactservice">
-        <option class="small-data" value="lib/contact_service-master/ContactService.js">Small</option>
-        <option class="big-data" value="lib/contact_service-10k/ContactService.js">10K</option>
-    </select>
-</div>
 <hr>
 <div id="lastAddedId"></div>
 <div id="lastRemovedId"></div>
 <hr>
 <div class="container">
     <div class="row">
-        <div id="container" class="dropdown"></div>
+        <div id="containerMaster" class="dropdown"></div>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div id="containerBigger" class="dropdown"></div>
     </div>
 </div>
 <div id="qunit"></div>
