@@ -60,10 +60,6 @@ a.multiselector-list-item.disabled {
     color: gray !important;
 }
 
-ul {
-    list-style-type: none;
-}
-
 li.multiselector-selected-item {
     float: left;
     margin-right: 10px;

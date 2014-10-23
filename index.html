@@ -12,8 +12,8 @@
         <script src="lib/contact_service-sportsTeams/ContactService.js"></script>
         <script src="lib/sprintf.min.js"></script>
         <script src="js/multiselector.js"></script>
-        <script src="js/multiselector2.js"></script>
         <script src="js/demo.js"></script>
+        <script src="js/prettify.js"></script>
 
         <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
         <link rel="stylesheet" type="text/css" href="css/bootstrap-tokenfield.min.css">
@@ -21,22 +21,23 @@
         <link rel="stylesheet" type="text/css" href="css/multiselector.css">
         <link rel="stylesheet" type="text/css" href="css/qunit-1.14.0.css">
         <link rel="stylesheet" type="text/css" href="css/demo.css">
+        <link rel="stylesheet" type="text/css" href="css/prettify.css" />
     </head>
-    <body>
+    <body onload="prettyPrint()">
         <div class="content">
 
             <header class="m-b-xl">
                 <a href="http://www.frontlinesms.com">
                     <img src="http://www.frontlinesms.com/wp-content/themes/whitelight/images/fl-logo.png">
                 </a>
-                <div class="h3 m-t-xl">
+                <div class="h2 m-t-xl">
                     MultiSelector Demo page
                 </div>
                 <a href="https://github.com/SolDevelo/frontlinesms-multiselector" class="btn btn-info">Project Source</a>
             </header>
 
             <div class="panel panel-default">
-                <header class="panel-heading">The contact selector</header>
+                <header class="panel-heading h4 m-t"><strong class="text-info">The contact selector</strong></header>
                 <div class="panel-body">
                     The Contact selector showing contacts, groups and smart groups.
                     <div class="container">
@@ -44,12 +45,20 @@
                             <div id="containerMaster" class="dropdown container-master"></div>
                         </div>
                     </div>
+                    If you want use MultiSelector, you must run the <code>multiselect</code> function when your document
+                    is ready. One way to do this is:
+                    <pre class="prettyprint">
+    $(document).ready(function() {
+        $("div#containerMaster").multiselect(options, translations, null, contactServiceMaster, "1");
+    };
+                    </pre>
+                    The parameters <code>multiselect</code> function are described below.
                 </div>
             </div>
             <hr>
 
             <div class="panel panel-default">
-                <header class="panel-heading">Pre-selected and non-editable items</header>
+                <header class="panel-heading h4 m-t"><strong class="text-info">Pre-selected and non-editable items</strong></header>
                 <div class="panel-body">
                     A more complex initialisation with pre-selected and non-editable items.
                     <div class="container">
@@ -57,14 +66,234 @@
                             <div id="containerPreloaded" class="dropdown container-preload"></div>
                         </div>
                     </div>
+                    You can specify items, which should be selected after creating the MultiSelector. To do this, you
+                    need to create an array of items and indicate it as the third parameter the <code>multiselect</code>
+                    function.
+                    <pre class="prettyprint">
+    var preloadedIDs = ["contact-6", "contact-10", "110", "+48987654321", "smartgroup-2"];
+    var msPreloaded = $("div#containerPreloaded").multiselect(options, translations, preloadedIDs, contactServiceMaster, "2");
+                    </pre>
+                    You can also add items after the creation of MultiSelector.
+                    <pre class="prettyprint">
+    msPreloaded.addObject("123456", true);
+    msPreloaded.addObject("777888999", false);
+    msPreloaded.addObject("contact-1", true);
+                    </pre>
+                    If the second parameter is <code>true</code>, the item is non-editable.
                 </div>
             </div>
             <hr>
 
             <div class="panel panel-default">
-                <header class="panel-heading">Embedded at a different size</header>
+                <header class="panel-heading h4 m-t"><strong class="text-info">MultiSelector options</strong></header>
                 <div class="panel-body">
-                    The above selector but embedded at a different size.
+                    You can set few options to be indicated as first parameter the <code>multiselect</code> function.
+                    <ul>
+                        <li class="h4"><strong>displayLimit</strong></li>
+                        The property specifies the number of elements in each category, which will be displayed when entering text in input.
+                        <pre class="prettyprint">
+    var options = {
+        "displayLimit": {
+            "contacts": 4,
+            "groups": 1,
+            "smartgroups": 1
+        },
+                        </pre>
+                        <li class="h4"><strong>icons</strong></li>
+                        You can set the icon, that appears next to the category.
+                        <pre class="prettyprint">
+        "icons": {
+            "contacts": "fa fa-user",
+            "groups": "fa fa-group",
+            "smartgroups": "fa fa-cog",
+            "phone-number": "fa fa-mobile-phone"
+        },
+                        </pre>
+                        <li class="h4"><strong>language</strong></li>
+                        This property allows you to select the language of the translation (see below).
+                        <pre class="prettyprint">
+        "language": "en_US",
+                        </pre>
+                        <li class="h4"><strong>minResultsHeight</strong></li>
+                        <pre class="prettyprint">
+        "minResultsHeight": 100,
+                        </pre>
+                        <li class="h4"><strong>contactLoading</strong></li>
+                        You can set size and time (in milliseconds) between loading a batch of contacts.
+                        <pre class="prettyprint">
+        "contactLoading": {
+            "intervalMs": 5,
+            "batchSize": 10
+        },
+                        </pre>
+                        <li class="h4"><strong>objectAdded</strong></li>
+                        Function which will be called when you select new element from list (see next example).
+                        <pre class="prettyprint">
+        objectAdded: function(objectId) {
+            $("#lastAddedId").text("Last added id: " + objectId);
+            return objectId;
+        },
+                        </pre>
+                        <li class="h4"><strong>objectRemoved</strong></li>
+                        Function which will be called when you remove element, which was selected earlier (see next example).
+                        <pre class="prettyprint">
+        objectRemoved: function(objectId) {
+            $("#lastRemovedId").text("Last removed id: " + objectId);
+            return objectId;
+        }
+    };
+                        </pre>
+                    </ul>
+
+                </div>
+            </div>
+            <hr>
+
+            <div class="panel panel-default">
+                <header class="panel-heading h4 m-t"><strong class="text-info">MultiSelector translations</strong></header>
+                <div class="panel-body">
+                    You can easily customize selector to your, or several languages. Just create a variable that is
+                    similar to the one below and choose the appropriate language in the options.
+                    <pre class="prettyprint">
+    var translations = {
+        "en_US": {
+            "common.item.limit.label": "Showing %s out of %s matches",
+            "common.item.selected": "Selected",
+            "common.item.show.all": "Show all contacts",
+            "common.item.show.all.button": "Show all",
+            "common.item.select.selected": "This item is already selected.",
+            "common.group.select.disabled": "This group is disabled and you can not select it.",
+            "common.item.add.number": "Add this phone number",
+            "common.progressbar.label": "Loading, please wait..."
+        },
+
+        "pl": {
+            "common.item.limit.label": "Pokazano %s z %s dopasowań",
+            "common.item.selected": "Wybrano",
+            "common.item.show.all": "Pokaż wszystkie kontakty",
+            "common.item.show.all.button": "Pokaż wszystko",
+            "common.item.select.selected": "Ta pozycja jest już wybrana,",
+            "common.group.select.disabled": "Ta grupa jest nieaktywna, nie możesz jej wybrać.",
+            "common.item.add.number": "Dodaj ten numer telefonu",
+            "common.progressbar.label": "Ładowanie, proszę czekać..."
+        }
+    };
+                        </pre>
+                </div>
+            </div>
+            <hr>
+
+            <div class="panel panel-default">
+                <header class="panel-heading h4 m-t"><strong class="text-info">Properties objectAdded and objectRemoved</strong></header>
+                <div class="panel-body">
+                    Example of use objectAdded and objectRemoved properties. Select and remove some items.
+                    <div class="container">
+                        <div class="row">
+                            <div id="containerAddedAndRemoved" class="dropdown container-bigger"></div>
+                        </div>
+                        <div id="lastAddedId"></div>
+                        <div id="lastRemovedId"></div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+
+            <div class="panel panel-default">
+                <header class="panel-heading h4 m-t"><strong class="text-info">Contact service</strong></header>
+                <div class="panel-body">
+                    You can assume a <code>contactService</code> variable will be available in the global scope,
+                    initialised before your function. It should specify the types of objects and 'database' for example:
+                    <pre class="prettyprint">
+    var types = {
+        "contacts": {
+            "name":"contacts",
+            "displayName" : "Contacts",
+            "customCssClass": "contacts"
+            },
+        "groups": {
+            "name":"groups",
+            "displayName" : "Groups",
+            "customCssClass": "groups"
+            },
+        "smartgroups": {
+            "name":"smartgroups",
+            "displayName" : "Smart Groups",
+            "customCssClass": "smartgroups"
+            }
+    }, fullContactDatabase = {
+        "contacts" : [
+            {
+                "name" : "Alicia",
+                "id" : "contact-1",
+                "metadata" : "+447943419787"
+            },
+            ... ... ...
+            {
+                "name" : "Sturridge Mwakule",
+                "id" : "contact-16",
+                "metadata" : "I play for Cheldam"
+            }
+        ],
+        "groups" : [
+            {
+                "name" : "Support Staff",
+                "id" : "group-1",
+                "metadata" : "4 members",
+                "memberCount" : 4
+            },
+            ... ... ...
+            {
+                "name" : "Android Owners",
+                "id" : "group-3",
+                "metadata" : "9 members",
+                "memberCount" : 9
+            }
+        ],
+        "smartgroups" : [
+            {
+                "name" : "Heores",
+                "id" : "smartgroup-1",
+                "metadata" : "9 members",
+                "memberCount" : 9
+            },
+            ... ... ...
+            {
+                "name" : "Villains",
+                "id" : "smartgroup-2",
+                "metadata" : "12 members",
+                "memberCount" : 12
+            }
+        ]
+    };
+
+                    </pre>
+                    Each type has:
+                     <ul>
+                        <li><strong>name</strong> - which is used in code</li>
+                        <li><strong>displayName</strong> - which is displayed to the user as the heading when listing entries of this grouping</li>
+                        <li><strong>customCssClass</strong> - which should be given as a css class for each of the members when displaying them</li>
+                    </ul>
+                    A <i>object</i> in the 'database' has:
+                    <ul>
+                        <li><strong>name</strong> - which is displayed to the user</li>
+                        <li><strong>id</strong> - which is a unique identifier of this object, and will form part of the 'getSelectedObjects' response in the javascript library</li>
+                        <li><strong>metaData</strong> - which is user-facing information that should be displayed next to the name in the dropdown</li>
+                    </ul>
+                    <code>contactService</code> variable should contains the following methods:
+                    <ul>
+                        <li><strong>getAll()</strong> - returns all objects</li>
+                        <li><strong>getTypes()</strong> - returns all types of objects</li>
+                        <li><strong>getObjectCount(objectType)</strong> - returns the number of items type 'objectType'</li>
+                        <li><strong>getFilteredMatches(selectedIds, searchString)</strong> - returns all objects that match the 'searchString', but excludes any in the 'selectedIds' list</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+
+            <div class="panel panel-default">
+                <header class="panel-heading h4 m-t"><strong class="text-info">Large number of items</strong></header>
+                <div class="panel-body">
+                    MultiSelector with a 10 thousands items.
                     <div class="container">
                         <div class="row">
                             <div id="containerBigger" class="dropdown container-bigger"></div>
@@ -75,7 +304,7 @@
             <hr>
 
             <div class="panel panel-default">
-                <header class="panel-heading">Sports teams in London</header>
+                <header class="panel-heading h4 m-t"><strong class="text-info">Sports teams in London</strong></header>
                 <div class="panel-body">
                     A simple lookup from a database of sports teams in London.
                     <div class="container">
@@ -85,9 +314,6 @@
                     </div>
                 </div>
             </div>
-            <hr>
-            <div id="lastAddedId"></div>
-            <div id="lastRemovedId"></div>
             <hr>
         </div>
     </body>

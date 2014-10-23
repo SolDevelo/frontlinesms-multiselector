@@ -1,64 +1,11 @@
-var ms, msBigger, msPreloaded, msSports;
-
 $(document).ready(function() {
     "use strict";
-
-    /* Default options:
-    {
-        "minResultsHeight": 300,
-        "displayLimit": {
-            "contacts": 15,
-            "groups": 5,
-            "smartgroups": 5
-        },
-        "displayNames": {
-            "contacts": "Contacts",
-            "groups": "Groups",
-            "smartgroups": "Smart Groups"
-        },
-        "objectAdded": null,
-        "objectRemoved": null,
-        "language": "en_US",
-        "icons": {
-            "contacts": "fa fa-user",
-            "groups": "fa fa-group",
-            "smartgroups": "fa fa-cog",
-            "phone-number": "fa fa-mobile-phone"
-        },
-        "contactLoading": {
-            // milliseconds between loading a batch of contacts
-            "intervalMs": 5,
-            "batchSize": 10
-        }
-    }*/
-
-    /*Default translations
-    {
-        "en_US": {
-            "common.item.limit.label": "Showing %s out of %s matches",
-            "common.item.selected": "Selected",
-            "common.item.show.all": "Show all contacts",
-            "common.item.show.all.button": "Show all",
-            "common.item.select.selected": "This item is already selected.",
-            "common.group.select.disabled": "This group is disabled and you can not select it.",
-            "common.item.add.number": "Add this phone number",
-            "common.progressbar.label": "Loading, please wait..."
-        }
-    }*/
 
     var options = {
         "displayLimit": {
             "contacts": 4,
             "groups": 1,
             "smartgroups": 1
-        },
-        objectAdded: function(objectId) {
-            $("#lastAddedId").text("Last added id: " + objectId);
-            return objectId;
-        },
-        objectRemoved: function(objectId) {
-            $("#lastRemovedId").text("Last removed id: " + objectId);
-            return objectId;
         },
         "icons": {
             "contacts": "fa fa-user",
@@ -67,13 +14,20 @@ $(document).ready(function() {
             "phone-number": "fa fa-mobile-phone"
         }
     };
-    var optionsSport = {
+
+    var optionsWithAddedAndRemoved = {
         "displayLimit": {
-            "basketballTeams": 2,
-            "footballTeams": 2,
-            "handballTeams": 2,
-            "rugbyTeams":2
+            "contacts": 4,
+            "groups": 1,
+            "smartgroups": 1
         },
+        "icons": {
+            "contacts": "fa fa-user",
+            "groups": "fa fa-group",
+            "smartgroups": "fa fa-cog",
+            "phone-number": "fa fa-mobile-phone"
+        },
+        "language": "en_US",
         objectAdded: function(objectId) {
             $("#lastAddedId").text("Last added id: " + objectId);
             return objectId;
@@ -81,6 +35,15 @@ $(document).ready(function() {
         objectRemoved: function(objectId) {
             $("#lastRemovedId").text("Last removed id: " + objectId);
             return objectId;
+        }
+    };
+
+    var optionsSport = {
+        "displayLimit": {
+            "basketballTeams": 2,
+            "footballTeams": 2,
+            "handballTeams": 2,
+            "rugbyTeams":2
         },
         "icons": {
             "basketballTeams": "fa fa-dribbble",
@@ -90,20 +53,41 @@ $(document).ready(function() {
             "phone-number": "fa fa-mobile-phone"
         }
     };
+
     var translations = {
         "en_US": {
             "common.item.limit.label": "Showing %s out of %s matches",
-            "common.group.select.disabled": "This group is disabled and you can not select it."
+            "common.item.selected": "Selected",
+            "common.item.show.all": "Show all contacts",
+            "common.item.show.all.button": "Show all",
+            "common.item.select.selected": "This item is already selected.",
+            "common.group.select.disabled": "This group is disabled and you can not select it.",
+            "common.item.add.number": "Add this phone number",
+            "common.progressbar.label": "Loading, please wait..."
+        },
+
+        "pl": {
+            "common.item.limit.label": "Pokazano %s z %s dopasowań",
+            "common.item.selected": "Wybrano",
+            "common.item.show.all": "Pokaż wszystkie kontakty",
+            "common.item.show.all.button": "Pokaż wszystko",
+            "common.item.select.selected": "Ta pozycja jest już wybrana,",
+            "common.group.select.disabled": "Ta grupa jest nieaktywna, nie możesz jej wybrać.",
+            "common.item.add.number": "Dodaj ten numer telefonu",
+            "common.progressbar.label": "Ładowanie, proszę czekać..."
         }
     };
+
     var preloadedIDs = ["contact-6", "contact-10", "110", "+48987654321", "smartgroup-2"];
 
-    ms = $("div#containerMaster").multiselect(options, translations, null, contactServiceMaster, "1");
-    msPreloaded = $("div#containerPreloaded").multiselect(options, translations, preloadedIDs, contactServiceMaster, "2");
+    $("div#containerMaster").multiselect(options, translations, null, contactServiceMaster, "1");
+    var msPreloaded = $("div#containerPreloaded").multiselect(options, translations, preloadedIDs, contactServiceMaster, "2");
     msPreloaded.addObject("123456", true);
+    msPreloaded.addObject("777888999", false);
     msPreloaded.addObject("contact-1", true);
-    msBigger = $("div#containerBigger").multiselect(options, translations, preloadedIDs, contactService10k, "3");
-    msSports = $("div#containerSports").multiselect(optionsSport, translations, null, contactServiceSportsTeams, "4");
+    $("div#containerAddedAndRemoved").multiselect(optionsWithAddedAndRemoved, translations, null, contactServiceMaster, "3");
+    $("div#containerBigger").multiselect(options, translations, preloadedIDs, contactService10k, "4");
+    $("div#containerSports").multiselect(optionsSport, translations, null, contactServiceSportsTeams, "5");
 
     /*
     var changeScript = function(pathToScript, onErrorText){
