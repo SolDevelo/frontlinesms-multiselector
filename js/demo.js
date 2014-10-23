@@ -1,4 +1,4 @@
-var ms, msBigger;
+var ms, msBigger, msPreloaded, msSports;
 
 $(document).ready(function() {
     "use strict";
@@ -67,6 +67,29 @@ $(document).ready(function() {
             "phone-number": "fa fa-mobile-phone"
         }
     };
+    var optionsSport = {
+        "displayLimit": {
+            "basketballTeams": 2,
+            "footballTeams": 2,
+            "handballTeams": 2,
+            "rugbyTeams":2
+        },
+        objectAdded: function(objectId) {
+            $("#lastAddedId").text("Last added id: " + objectId);
+            return objectId;
+        },
+        objectRemoved: function(objectId) {
+            $("#lastRemovedId").text("Last removed id: " + objectId);
+            return objectId;
+        },
+        "icons": {
+            "basketballTeams": "fa fa-dribbble",
+            "footballTeams": "fa fa-circle",
+            "handballTeams": "fa fa-thumbs-up",
+            "rugbyTeams": "fa fa-eye",
+            "phone-number": "fa fa-mobile-phone"
+        }
+    };
     var translations = {
         "en_US": {
             "common.item.limit.label": "Showing %s out of %s matches",
@@ -75,8 +98,12 @@ $(document).ready(function() {
     };
     var preloadedIDs = ["contact-6", "contact-10", "110", "+48987654321", "smartgroup-2"];
 
-    ms = $("div#containerMaster").multiselect(options, translations, preloadedIDs, contactServiceMaster, "1");
-    msBigger = $("div#containerBigger").multiselect(options, translations, preloadedIDs, contactService10k, "2");
+    ms = $("div#containerMaster").multiselect(options, translations, null, contactServiceMaster, "1");
+    msPreloaded = $("div#containerPreloaded").multiselect(options, translations, preloadedIDs, contactServiceMaster, "2");
+    msPreloaded.addObject("123456", true);
+    msPreloaded.addObject("contact-1", true);
+    msBigger = $("div#containerBigger").multiselect(options, translations, preloadedIDs, contactService10k, "3");
+    msSports = $("div#containerSports").multiselect(optionsSport, translations, null, contactServiceSportsTeams, "4");
 
     /*
     var changeScript = function(pathToScript, onErrorText){

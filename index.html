@@ -9,10 +9,11 @@
     <script src="lib/bootstrap-tokenfield.min.js"></script>
     <script src="lib/contact_service-master/ContactService.js"></script>
     <script src="lib/contact_service-10k/ContactService.js"></script>
+    <script src="lib/contact_service-sportsTeams/ContactService.js"></script>
     <script src="lib/sprintf.min.js"></script>
     <script src="js/multiselector.js"></script>
     <script src="js/demo.js"></script>
-    <script src="js/test.js"></script>
+
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/bootstrap-tokenfield.min.css">
     <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
@@ -27,17 +28,32 @@
 <div id="lastRemovedId"></div>
 <hr>
 <div class="container">
+    The Contact selector showing contacts, groups and smart groups.
     <div class="row">
         <div id="containerMaster" class="dropdown"></div>
     </div>
 </div>
+<hr>
 <div class="container">
+    A more complex initialisation with pre-selected and non-editable items.
+    <div class="row">
+        <div id="containerPreloaded" class="dropdown"></div>
+    </div>
+</div>
+<hr>
+<div class="container">
+    The above selector but embedded at a different size.
     <div class="row">
         <div id="containerBigger" class="dropdown"></div>
     </div>
 </div>
-<div id="qunit"></div>
 <hr>
-
+<div class="container">
+    A simple lookup from a database of sports teams in London.
+    <div class="row">
+        <div id="containerSports" class="dropdown"></div>
+    </div>
+</div>
+<hr>
 </body>
 </html>
