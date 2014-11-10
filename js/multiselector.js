@@ -45,11 +45,13 @@
 			{
 				"name": "expression",
 				"regex":  /^\${.*$/g,
-				"allowCommas" : true
+				"allowCommas" : true,
+				"encode": true
 			},
 			{
 				"name": "phone-number",
-				"regex":  /^\+?\d+$/g
+				"regex":  /^\+?\d+$/g,
+				"encode": false
 			}
 		],
             "icons": {},
@@ -571,7 +573,7 @@
             addStringLiteral: function(stringLiteral, selected, dontUpdate) {
                 var literalObject = {
                     name: stringLiteral,
-                    id: encodeURIComponent(stringLiteral),
+                    id: helpers.getMatchedLiteralType(stringLiteral, 'encode') ? encodeURIComponent(stringLiteral) : stringLiteral,
                     metadata: stringLiteral
                 };
                 if (helpers.addCustomContact(literalObject, selected, helpers.getMatchedLiteralType(stringLiteral)) && !dontUpdate &&
