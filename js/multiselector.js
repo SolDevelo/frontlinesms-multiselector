@@ -551,7 +551,7 @@
                                 helpers.highlightItem();
                                 $("ul.multiselector-selection-"+wrapperId).find(".token-input").val("").focus();
                                 helpers.toggleShowAllButton(false);
-                                multiSelector.options.objectAdded(objectId);
+				helpers.callObjectAdded(objectId);
                                 helpers.updateInputWidth();
 
                                 return;
