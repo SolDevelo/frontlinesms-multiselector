@@ -1462,7 +1462,7 @@
             for (var i = 0; i < multiSelector.selected.length; i++) {
                 helpers.createSelectedItem(multiSelector.selected[i].name, multiSelector.selected[i].customCssClass,
                     true, multiSelector.selected[i].memberCount);                
-               	multiSelector.options.objectAdded(multiSelector.selected[i].id);
+		helpers.callObjectAdded(multiSelector.selected[i].id);
             }
             //Handling input
             selection.keyup(handleKeyUp);

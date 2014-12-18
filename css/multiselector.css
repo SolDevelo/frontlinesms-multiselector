@@ -8,7 +8,7 @@ li.multiselector-selected-item {
     width: auto;
 }
 
-.multiselector-results-container {
+.multiselector-results-containers {
     position: absolute;
     background-color: #FFFFFF;
     border: 1px solid rgba(0, 0, 0, .15);
@@ -22,7 +22,7 @@ li.multiselector-selected-item {
     background-clip: padding-box;
 }
 
-.multiselector-results {
+.multiselector-results-style {
     overflow-y: scroll;
     width: 100%;
     position: relative !important;
@@ -58,10 +58,6 @@ a.multiselector-list-item.selected  {
 
 a.multiselector-list-item.disabled {
     color: gray !important;
-}
-
-ul {
-    list-style-type: none;
 }
 
 li.multiselector-selected-item {

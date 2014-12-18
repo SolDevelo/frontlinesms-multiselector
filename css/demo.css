@@ -1,3 +1,51 @@
 #lastAddedId, #lastRemovedId {
     margin: 10px;
 }
+
+body {
+    background: #dddddd;
+}
+
+.content {
+    background: #ffffff;
+    width: 70%;
+    margin: 0 auto;
+    padding: 40px 50px 40px;
+    border: 1px solid #bbbbbb;
+    border-top-width: 0px;
+}
+
+.row, .container{
+    margin-left: 1px;
+    width: 100%;
+}
+
+.container-master {
+    margin: 0 auto;
+    width: 60%;
+}
+
+.container-preload {
+    width: 100%;
+}
+
+.container-bigger {
+    margin: 0 auto;
+    width: 80%;
+}
+
+.container-sports {
+    width: 40%;
+}
+
+.m-b-xl {
+    margin-bottom: 40px;
+}
+
+.m-t{
+    margin-top: 0px;
+}
+
+.m-t-xl {
+    margin-top: 40px;
+}
