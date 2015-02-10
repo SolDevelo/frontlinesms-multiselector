@@ -655,7 +655,7 @@
 
                 var multiselectorResults = $(".multiselector-results-container-"+wrapperId);
                 var showAll = $(".show-all-"+wrapperId);
-                $('.dropdown-toggle').dropdown('toggle');
+                $('.multiselector-results.dropdown-toggle').dropdown('toggle');
                 if (!multiselectorResults.hasClass("hidden") && showAll.hasClass("btn-primary")) {
                     properties.showAll.setAll(false);
                     helpers.preventActionOnResults(function() {
